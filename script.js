@@ -31,9 +31,23 @@ const save = (data) => localStorage.setItem(KEY, JSON.stringify(data));
 let state = load();
 
 function setPermState() {
-  const n = Notification.permission || 'default';
-  $('#permState').textContent = `通知: ${n} / サウンド: ${canSound ? '準備OK' : '未準備'}`;
+  // 通知ボタン
+  const btnN = $('#btnNotify');
+  if (Notification.permission === 'granted') {
+    btnN.classList.add('active');
+  } else {
+    btnN.classList.remove('active');
+  }
+
+  // サウンドボタン
+  const btnS = $('#btnSound');
+  if (canSound) {
+    btnS.classList.add('active');
+  } else {
+    btnS.classList.remove('active');
+  }
 }
+
 $('#btnNotify').addEventListener('click', async () => {
   try {
     const p = await Notification.requestPermission();
@@ -208,23 +222,6 @@ function tickWorkers() {
     }
   }
 }
-$('#addWorker').addEventListener('click', () => {
-  const m = parseInt($('#workerMinutes').value || '0', 10);
-  if (m <= 0) {
-    alert('クールダウン（分）を入力してください。');
-    return;
-  }
-  const now = Date.now();
-  const w = {
-    id: 'w_' + now + '_' + Math.random().toString(36).slice(2),
-    targetAt: now + m * 60 * 1000,
-    fired: false
-  };
-    state.workers.push(w);
-  save(state);
-  addWorkerItem(w);
-  stopBlink();
-});
 
 function restoreWorkers() {
   $('#workerList').innerHTML = '';
@@ -243,20 +240,22 @@ setPermState();
 restoreEnergyUI();
 restoreWorkers();
 
-$('#workerPresetButtons').addEventListener('click', (e) => {
-  const btn = e.target.closest('button[data-min]');
-  if (!btn) return;
-  const min = parseFloat(btn.dataset.min);
-  const now = Date.now();
-  const w = {
-    id: 'w_' + now + '_' + Math.random().toString(36).slice(2),
-    targetAt: now + min * 60 * 1000,
-    fired: false
-  };
-  state.workers.push(w);
-  save(state);
-  addWorkerItem(w);
-  stopBlink();
+document.addEventListener('DOMContentLoaded', () => {
+  $('#workerPresetButtons').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-min]');
+    if (!btn) return;
+    const min = parseFloat(btn.dataset.min);
+    const now = Date.now();
+    const w = {
+      id: 'w_' + now + '_' + Math.random().toString(36).slice(2),
+      targetAt: now + min * 60 * 1000,
+      fired: false
+    };
+    state.workers.push(w);
+    save(state);
+    addWorkerItem(w);
+    stopBlink();
+  });
 });
 
 setInterval(() => {

@@ -8,56 +8,56 @@
 </head>
 <body>
   <header>
-    <h1>Farm Merge Valley タイマー（労働者＆エネルギー）</h1>
+    <h1>Farm Merge Valley タイマー</h1>
+    <div class="notify-bar">
+      <button id="btnNotify">通知</button>
+      <button id="btnSound">音</button>
+      <button id="btnTest">テスト</button>
+    </div>
   </header>
 
   <main>
-    <section class="card">
-      <h2>通知とサウンド</h2>
-      <div class="actions">
-        <button id="btnNotify">通知を有効化</button>
-        <button id="btnSound">サウンドを有効化</button>
-        <button id="btnTest">テスト通知</button>
-      </div>
-      <p class="muted" id="permState">通知: 未確認 / サウンド: 未準備</p>
-      <audio id="beep" preload="auto">
-        <source src="data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABYAZGF0YQAAAP///wAAAAAAAP///wAAAAAAAP///wD///8AAAAAAP///wAAAAAAAP///wD///8AAAAAAP///wAAAAAA" type="audio/wav">
-      </audio>
-    </section>
-
-    <section class="card">
+    <!-- エネルギー回復アラーム -->
+    <section class="card energy">
       <h2>エネルギー回復アラーム</h2>
-      <label>現在エネルギー（0〜50）</label>
-      <input id="curEnergy" type="number" min="0" max="50" value="0" />
-      <div class="grid3" style="margin-top:12px">
-        <button id="startEnergy">開始</button>
-        <button id="stopEnergy">停止</button>
-        <button id="resetEnergy">リセット</button>
-      </div>
-      <div>
-        <div class="pill" id="energyTarget">目標時刻: —</div>
-        <div class="timer" id="energyRemain">—:—:—</div>
-        <div class="muted" id="energyHint">設定後に残り時間が表示されます。</div>
+      <div class="energy-grid">
+        <div class="energy-controls">
+          <label>現在エネルギー（0〜50）</label>
+          <input id="curEnergy" type="number" min="0" max="50" value="0" />
+          <div class="grid3">
+            <button id="startEnergy">開始</button>
+            <button id="stopEnergy">停止</button>
+            <button id="resetEnergy">リセット</button>
+          </div>
+        </div>
+        <div class="energy-display">
+          <div class="pill" id="energyTarget">目標時刻: —</div>
+          <div class="timer" id="energyRemain">—:—:—</div>
+          <div class="muted" id="energyHint">設定後に残り時間が表示されます。</div>
+        </div>
       </div>
     </section>
 
-    <section class="card">
-  <h2>労働者アラーム</h2>
-  <label>クールダウン時間を選択</label>
-  <div class="grid2" id="workerPresetButtons">
-    <button data-min="3">3分</button>
-    <button data-min="5">5分</button>
-    <button data-min="8.33">8分20秒</button>
-    <button data-min="15">15分</button>
-    <button data-min="30">30分</button>
-    <button data-min="50">50分</button>
-    <button data-min="80">1時間20分</button>
-    <button data-min="120">2時間</button>
-  </div>
-  <p class="muted">作業開始時にボタンを押すと、再稼働の時刻で通知します。</p>
-  <div class="list" id="workerList"></div>
-</section>
+    <!-- 労働者アラーム -->
+    <section class="card workers">
+      <h2>労働者アラーム</h2>
+      <div class="preset-bar" id="workerPresetButtons">
+        <button data-min="3">3分</button>
+        <button data-min="5">5分</button>
+        <button data-min="8.33">8分20秒</button>
+        <button data-min="15">15分</button>
+        <button data-min="30">30分</button>
+        <button data-min="50">50分</button>
+        <button data-min="80">1時間20分</button>
+        <button data-min="120">2時間</button>
+      </div>
+      <div class="list" id="workerList"></div>
+    </section>
   </main>
+
+  <audio id="beep" preload="auto">
+    <source src="data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABYAZGF0YQAAAP///wAAAAAAAP///wAAAAAAAP///wD///8AAAAAAP///wAAAAAAAP///wD///8AAAAAAP///wAAAAAA" type="audio/wav">
+  </audio>
 
   <script src="script.js"></script>
 </body>

@@ -7,20 +7,49 @@
   --warn: #ffb454;
   --danger: #ff6b6b;
 }
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, "Noto Sans JP", sans-serif;
   background: var(--bg);
   color: var(--text);
 }
+
 header {
-  padding: 16px 20px;
+  padding: 12px 16px;
   border-bottom: 1px solid #222a35;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
-h1 {
+
+header h1 {
   font-size: 18px;
   margin: 0;
 }
+
+.notify-bar {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.notify-bar button {
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid #2a3648;
+  background: #0f141a;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.notify-bar button.active {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+
 main {
   max-width: 960px;
   margin: 0 auto;
@@ -28,53 +57,48 @@ main {
   display: grid;
   gap: 20px;
 }
+
 .card {
   background: var(--panel);
   border: 1px solid #243041;
   border-radius: 12px;
   padding: 16px;
 }
+
 .card h2 {
-  font-size: 16px;
+  font-size: 14px;
   margin-bottom: 12px;
-}
-label {
-  display: block;
   color: var(--muted);
-  font-size: 12px;
-  margin: 10px 0 6px;
 }
-input,
-button {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #2a3648;
-  background: #0f141a;
-  color: var(--text);
-}
-.grid2 {
+
+/* エネルギー回復アラーム */
+.energy-grid {
   display: grid;
-  gap: 12px;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 220px 1fr;
+  gap: 20px;
 }
-.grid3 {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: 1fr 1fr 1fr;
+
+.energy-controls input {
+  margin-bottom: 8px;
 }
-.muted {
-  color: var(--muted);
-  font-size: 12px;
+
+.energy-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
+
+.timer {
+  font-variant-numeric: tabular-nums;
+  font-size: 36px;
+  margin: 8px 0;
+}
+
 .ok {
   color: var(--accent);
 }
-.timer {
-  font-variant-numeric: tabular-nums;
-  font-size: 28px;
-  margin: 8px 0;
-}
+
 .pill {
   font-size: 12px;
   padding: 4px 8px;
@@ -82,28 +106,39 @@ button {
   border: 1px solid #2a3648;
   color: var(--muted);
 }
+
+/* 労働者アラーム */
+.preset-bar {
+  display: grid;
+  grid-auto-flow: column;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
 .list {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 12px;
 }
+
 .item {
+  flex: 0 0 200px;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   background: #0f141a;
   border: 1px solid #2a3648;
   border-radius: 8px;
-  padding: 10px;
+  padding: 12px;
 }
-.item .left {
-  display: flex;
-  flex-direction: column;
+
+.item .timer {
+  font-size: 24px;
+  margin: 8px 0;
 }
-.item .right {
-  display: flex;
-  gap: 8px;
-}
+
 .item.done {
   background: var(--accent);
   color: #000;
