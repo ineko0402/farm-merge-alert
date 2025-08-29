@@ -1,46 +1,17 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Farm Merge Valley 用アラーム</title>
-<style>
-  :root { --bg:#0e1217; --panel:#171c23; --text:#e8eef7; --muted:#9fb0c8; --accent:#57d38c; --warn:#ffb454; --danger:#ff6b6b; }
-  body { margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif; background:var(--bg); color:var(--text); }
-  header { padding:16px 20px; border-bottom:1px solid #222a35; }
-  h1 { font-size:18px; margin:0; }
-  main { max-width:960px; margin:0 auto; padding:20px; display:grid; gap:20px; grid-template-columns: 1fr; }
-  .row { display:grid; gap:20px; grid-template-columns: 1fr 1fr; }
-  @media (max-width:900px){ .row { grid-template-columns:1fr; } }
-  .card { background:var(--panel); border:1px solid #243041; border-radius:12px; padding:16px; }
-  .card h2 { font-size:16px; margin:0 0 12px; }
-  label { display:block; color:var(--muted); font-size:12px; margin:10px 0 6px; }
-  input, select, button { width:100%; padding:10px; border-radius:8px; border:1px solid #2a3648; background:#0f141a; color:var(--text); }
-  input[type="number"] { appearance:textfield; }
-  .grid2 { display:grid; gap:12px; grid-template-columns:1fr 1fr; }
-  .grid3 { display:grid; gap:12px; grid-template-columns:1fr 1fr 1fr; }
-  .muted { color:var(--muted); font-size:12px; }
-  .ok { color:var(--accent); }
-  .warn { color:var(--warn); }
-  .danger { color:var(--danger); }
-  .timer { font-variant-numeric:tabular-nums; font-size:28px; margin:8px 0; }
-  .list { display:flex; flex-direction:column; gap:12px; }
-  .item { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px; background:#0f141a; border:1px solid #2a3648; border-radius:8px; }
-  .item .left { display:flex; flex-direction:column; gap:4px; }
-  .item .right { display:flex; gap:8px; }
-  .pill { font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid #2a3648; color:var(--muted); }
-  .actions { display:flex; gap:10px; }
-  .blink { animation: blink 1s steps(2, jump-none) infinite; }
-  @keyframes blink { 50% { opacity:0.3; } }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Farm Merge Valley タイマー</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<header>
-  <h1>Farm Merge Valley タイマー（労働者＆エネルギー）</h1>
-</header>
+  <header>
+    <h1>Farm Merge Valley タイマー（労働者＆エネルギー）</h1>
+  </header>
 
-<main>
-  <div class="row">
+  <main>
     <section class="card">
       <h2>通知とサウンド</h2>
       <div class="actions">
@@ -56,29 +27,12 @@
 
     <section class="card">
       <h2>エネルギー回復アラーム</h2>
-      <div class="grid3">
-        <div>
-          <label>最大エネルギー</label>
-          <input id="maxEnergy" type="number" min="1" value="50">
-        </div>
-        <div>
-          <label>現在エネルギー</label>
-          <input id="curEnergy" type="number" min="0" value="0">
-        </div>
-        <div>
-          <label>回復間隔（分/1）</label>
-          <input id="minPerUnit" type="number" min="1" value="3">
-        </div>
-      </div>
-      <div class="grid2" style="margin-top:12px">
-        <div>
-          <label>しきい値（この値に達したら通知）</label>
-          <input id="threshold" type="number" min="1" value="50">
-        </div>
-        <div>
-          <label>開始</label>
-          <button id="startEnergy">計測開始 / 更新</button>
-        </div>
+      <label>現在エネルギー（0〜50）</label>
+      <input id="curEnergy" type="number" min="0" max="50" value="0" />
+      <div class="grid3" style="margin-top:12px">
+        <button id="startEnergy">開始</button>
+        <button id="stopEnergy">停止</button>
+        <button id="resetEnergy">リセット</button>
       </div>
       <div>
         <div class="pill" id="energyTarget">目標時刻: —</div>
@@ -86,294 +40,25 @@
         <div class="muted" id="energyHint">設定後に残り時間が表示されます。</div>
       </div>
     </section>
+
+    <section class="card">
+  <h2>労働者アラーム</h2>
+  <label>クールダウン時間を選択</label>
+  <div class="grid2" id="workerPresetButtons">
+    <button data-min="3">3分</button>
+    <button data-min="5">5分</button>
+    <button data-min="8.33">8分20秒</button>
+    <button data-min="15">15分</button>
+    <button data-min="30">30分</button>
+    <button data-min="50">50分</button>
+    <button data-min="80">1時間20分</button>
+    <button data-min="120">2時間</button>
   </div>
+  <p class="muted">作業開始時にボタンを押すと、再稼働の時刻で通知します。</p>
+  <div class="list" id="workerList"></div>
+</section>
+  </main>
 
-  <section class="card">
-    <h2>労働者アラーム</h2>
-    <div class="grid2">
-      <div>
-        <label>クールダウン（分）</label>
-        <input id="workerMinutes" type="number" min="1" value="30">
-      </div>
-      <div>
-        <label>追加</label>
-        <button id="addWorker">この設定で1件追加</button>
-      </div>
-    </div>
-    <p class="muted">作業を開始したタイミングで「追加」を押すと、再稼働の時刻で通知します。複数人分を並行管理できます。</p>
-    <div class="list" id="workerList"></div>
-  </section>
-</main>
-
-<script>
-/* ====== 小ユーティリティ ====== */
-const $ = (s)=>document.querySelector(s);
-const fmt = (ms)=>{
-  if (ms < 0) ms = 0;
-  const s = Math.floor(ms/1000);
-  const h = Math.floor(s/3600);
-  const m = Math.floor((s%3600)/60);
-  const ss= s%60;
-  return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${ss.toString().padStart(2,'0')}`;
-};
-const fmtDT = (t)=> new Date(t).toLocaleString();
-
-/* ====== 通知/サウンド ====== */
-let canSound = false;
-const beepEl = $('#beep');
-let origTitle = document.title;
-let blinkTimer = null;
-
-function setPermState(){
-  const n = (Notification.permission || 'default');
-  $('#permState').textContent = `通知: ${n} / サウンド: ${canSound ? '準備OK' : '未準備'}`;
-}
-$('#btnNotify').addEventListener('click', async ()=>{
-  try {
-    const p = await Notification.requestPermission();
-    setPermState();
-    if (p !== 'granted') alert('通知が拒否/未許可です。ブラウザのサイト設定で許可してください。');
-  } catch(e){ alert('通知の許可に失敗しました。'); }
-});
-$('#btnSound').addEventListener('click', async ()=>{
-  try {
-    await beepEl.play(); // 解禁用ワンショット
-    beepEl.pause(); beepEl.currentTime = 0;
-    canSound = true; setPermState();
-  } catch(e){ alert('サウンドの有効化に失敗。音量/自動再生設定をご確認ください。'); }
-});
-$('#btnTest').addEventListener('click', ()=>{
-  notifyAll('テスト通知', '通知・サウンド・タイトル点滅のテストです。');
-});
-
-function startBlink(){
-  if (blinkTimer) return;
-  let on=false;
-  blinkTimer = setInterval(()=>{
-    document.title = on ? '⏰ アラーム' : origTitle;
-    on=!on;
-  }, 800);
-}
-function stopBlink(){
-  if (blinkTimer){ clearInterval(blinkTimer); blinkTimer=null; document.title=origTitle; }
-}
-
-function notifyAll(title, body){
-  if (document.hidden) startBlink();
-  // Web通知
-  if ('Notification' in window && Notification.permission==='granted'){
-    try { new Notification(title, { body }); } catch(e){}
-  }
-  // サウンド
-  if (canSound){
-    try { beepEl.currentTime = 0; beepEl.play(); } catch(e){}
-  }
-  // バイブ（対応端末）
-  if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
-}
-
-/* ====== 永続化 ====== */
-const KEY = 'fmv_timers_v1';
-const load = ()=> {
-  try { return JSON.parse(localStorage.getItem(KEY)) || { energy:null, workers:[] }; } catch{ return { energy:null, workers:[] }; }
-};
-const save = (data)=> localStorage.setItem(KEY, JSON.stringify(data));
-
-let state = load();
-
-/* ====== エネルギー ====== */
-function calcEnergyTarget(max, cur, minPerUnit, threshold){
-  if (threshold > max) threshold = max;
-  if (cur >= threshold) return Date.now(); // もう達している
-  const need = threshold - cur;
-  const minutes = need * minPerUnit;
-  return Date.now() + minutes*60*1000;
-}
-
-function renderEnergy(){
-  const tgt = state.energy?.targetAt;
-  const elRem = $('#energyRemain');
-  const elTgt = $('#energyTarget');
-  const hint = $('#energyHint');
-  if (!tgt){
-    elRem.textContent = '—:—:—';
-    elTgt.textContent = '目標時刻: —';
-    hint.textContent = '設定後に残り時間が表示されます。';
-    return;
-  }
-  elTgt.textContent = '目標時刻: ' + fmtDT(tgt);
-  const remain = tgt - Date.now();
-  elRem.textContent = fmt(remain);
-  if (remain <= 0){
-    elRem.classList.add('ok'); hint.textContent = 'しきい値に到達しました！';
-  } else {
-    elRem.classList.remove('ok'); hint.textContent = '到達すると通知します。';
-  }
-}
-
-function tickEnergy(){
-  if (!state.energy?.targetAt) return;
-  const remain = state.energy.targetAt - Date.now();
-  const prevDue = state.energy.dueFired;
-  if (remain <= 0 && !prevDue){
-    notifyAll('エネルギー到達', `エネルギーがしきい値に達しました。`);
-    state.energy.dueFired = true; save(state);
-  }
-  renderEnergy();
-}
-
-$('#startEnergy').addEventListener('click', ()=>{
-  const max = parseInt($('#maxEnergy').value||'0',10);
-  const cur = parseInt($('#curEnergy').value||'0',10);
-  const minPer = parseFloat($('#minPerUnit').value||'1');
-  const th = parseInt($('#threshold').value||String(max),10);
-  if (max<=0 || minPer<=0){ alert('最大と回復間隔を正しく入力してください。'); return; }
-  if (cur<0 || cur>max){ alert('現在エネルギーが範囲外です。'); return; }
-  const targetAt = calcEnergyTarget(max, cur, minPer, th);
-  state.energy = { max, cur, minPer, threshold: th, targetAt, dueFired: targetAt<=Date.now() };
-  save(state);
-  stopBlink();
-  renderEnergy();
-});
-
-function restoreEnergyUI(){
-  if (!state.energy) return;
-  $('#maxEnergy').value = state.energy.max ?? 100;
-  $('#curEnergy').value = state.energy.cur ?? 0;
-  $('#minPerUnit').value = state.energy.minPer ?? 5;
-  $('#threshold').value = state.energy.threshold ?? (state.energy.max ?? 100);
-  renderEnergy();
-}
-
-/* ====== 労働者 ====== */
-function addWorkerItem(w){
-  const wrap = document.createElement('div');
-  wrap.className = 'item';
-  const left = document.createElement('div');
-  left.className = 'left';
-  const title = document.createElement('div');
-  title.innerHTML = `<strong>労働者</strong> <span class="pill">完了: ${fmtDT(w.targetAt)}</span>`;
-  const remain = document.createElement('div');
-  remain.className = 'timer';
-  remain.textContent = fmt(w.targetAt - Date.now());
-  left.appendChild(title);
-  left.appendChild(remain);
-
-  const right = document.createElement('div');
-  right.className = 'right';
-  const btnDone = document.createElement('button');
-  btnDone.textContent = '削除';
-  btnDone.addEventListener('click', ()=>{
-    state.workers = state.workers.filter(x=>x.id!==w.id);
-    save(state);
-    $('#workerList').removeChild(wrap);
-  });
-  const btnSnooze = document.createElement('button');
-  btnSnooze.textContent = '＋5分';
-  btnSnooze.addEventListener('click', ()=>{
-    w.targetAt += 5*60*1000;
-    w.fired = false;
-    save(state);
-    title.innerHTML = `<strong>労働者</strong> <span class="pill">完了: ${fmtDT(w.targetAt)}</span>`;
-    remain.textContent = fmt(w.targetAt - Date.now());
-  });
-  right.appendChild(btnSnooze);
-  right.appendChild(btnDone);
-
-  wrap.appendChild(left);
-  wrap.appendChild(right);
-  $('#workerList').appendChild(wrap);
-// 追加ボタン作成（+10分／+15分／+30分）
-const btnSnooze10 = document.createElement('button');
-btnSnooze10.textContent = '＋10分';
-btnSnooze10.addEventListener('click', ()=>{
-  w.targetAt += 10*60*1000;
-  w.fired = false;
-  save(state);
-  title.innerHTML = `<strong>労働者</strong> <span class="pill">完了: ${fmtDT(w.targetAt)}</span>`;
-  remain.textContent = fmt(w.targetAt - Date.now());
-});
-
-const btnSnooze15 = document.createElement('button');
-btnSnooze15.textContent = '＋15分';
-btnSnooze15.addEventListener('click', ()=>{
-  w.targetAt += 15*60*1000;
-  w.fired = false;
-  save(state);
-  title.innerHTML = `<strong>労働者</strong> <span class="pill">完了: ${fmtDT(w.targetAt)}</span>`;
-  remain.textContent = fmt(w.targetAt - Date.now());
-});
-
-const btnSnooze30 = document.createElement('button');
-btnSnooze30.textContent = '＋30分';
-btnSnooze30.addEventListener('click', ()=>{
-  w.targetAt += 30*60*1000;
-  w.fired = false;
-  save(state);
-  title.innerHTML = `<strong>労働者</strong> <span class="pill">完了: ${fmtDT(w.targetAt)}</span>`;
-  remain.textContent = fmt(w.targetAt - Date.now());
-});
-
-// 既存の「+5分」に追加する
-right.appendChild(btnSnooze);
-right.appendChild(btnSnooze10);
-right.appendChild(btnSnooze15);
-right.appendChild(btnSnooze30);
-right.appendChild(btnDone);
-
-  // 更新ループ
-  w._elRemain = remain;
-  w._elTitle = title;
-  return wrap;
-}
-
-function tickWorkers(){
-  for (const w of state.workers){
-    const r = w.targetAt - Date.now();
-    if (w._elRemain) w._elRemain.textContent = fmt(r);
-    if (r<=0 && !w.fired){
-      notifyAll('労働者が準備OK', '次の作業が可能です。');
-      w.fired = true; save(state);
-    }
-  }
-}
-
-$('#addWorker').addEventListener('click', ()=>{
-  const m = parseInt($('#workerMinutes').value||'0', 10);
-  if (m<=0){ alert('クールダウン（分）を入力してください。'); return; }
-  const now = Date.now();
-  const w = { id: 'w_'+now+'_'+Math.random().toString(36).slice(2), targetAt: now + m*60*1000, fired: false };
-  state.workers.push(w);
-  save(state);
-  addWorkerItem(w);
-  stopBlink();
-});
-
-function restoreWorkers(){
-  $('#workerList').innerHTML = '';
-  for (const w of state.workers){
-    addWorkerItem(w);
-  }
-}
-
-/* ====== 起動時処理 ====== */
-setPermState();
-restoreEnergyUI();
-restoreWorkers();
-
-setInterval(()=>{
-  tickEnergy();
-  tickWorkers();
-}, 1000);
-
-// ページ復帰時に即時チェック
-document.addEventListener('visibilitychange', ()=>{
-  if (!document.hidden){
-    stopBlink();
-    tickEnergy();
-    tickWorkers();
-  }
-});
-</script>
+  <script src="script.js"></script>
 </body>
 </html>

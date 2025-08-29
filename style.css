@@ -1,0 +1,110 @@
+:root {
+  --bg: #0e1217;
+  --panel: #171c23;
+  --text: #e8eef7;
+  --muted: #9fb0c8;
+  --accent: #57d38c;
+  --warn: #ffb454;
+  --danger: #ff6b6b;
+}
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Noto Sans JP", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #222a35;
+}
+h1 {
+  font-size: 18px;
+  margin: 0;
+}
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px;
+  display: grid;
+  gap: 20px;
+}
+.card {
+  background: var(--panel);
+  border: 1px solid #243041;
+  border-radius: 12px;
+  padding: 16px;
+}
+.card h2 {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+label {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin: 10px 0 6px;
+}
+input,
+button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #2a3648;
+  background: #0f141a;
+  color: var(--text);
+}
+.grid2 {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+}
+.grid3 {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.muted {
+  color: var(--muted);
+  font-size: 12px;
+}
+.ok {
+  color: var(--accent);
+}
+.timer {
+  font-variant-numeric: tabular-nums;
+  font-size: 28px;
+  margin: 8px 0;
+}
+.pill {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid #2a3648;
+  color: var(--muted);
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0f141a;
+  border: 1px solid #2a3648;
+  border-radius: 8px;
+  padding: 10px;
+}
+.item .left {
+  display: flex;
+  flex-direction: column;
+}
+.item .right {
+  display: flex;
+  gap: 8px;
+}
+.item.done {
+  background: var(--accent);
+  color: #000;
+}
