@@ -71,6 +71,12 @@ main {
   color: var(--muted);
 }
 
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
 /* エネルギー回復アラーム */
 .energy-grid {
   display: grid;
@@ -78,11 +84,22 @@ main {
   gap: 20px;
 }
 
-.energy-controls input {
-  margin-bottom: 8px;
+.energy-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-.energy-display {
+/* 物資アラーム */
+.supply-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
+.supply-display {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -95,6 +112,16 @@ main {
   margin: 8px 0;
 }
 
+.timer.energy-ok {
+  color: var(--warn);
+}
+.timer.supply-ok {
+  color: var(--accent);
+}
+.timer.worker-ok {
+  color: #c792ea; /* 紫っぽい色 */
+}
+
 .ok {
   color: var(--accent);
 }
@@ -105,6 +132,12 @@ main {
   border-radius: 999px;
   border: 1px solid #2a3648;
   color: var(--muted);
+  margin-top: 4px;
+}
+
+.pill.warn {
+  color: var(--warn);
+  border-color: var(--warn);
 }
 
 /* 労働者アラーム */
