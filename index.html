@@ -2,62 +2,64 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Farm Merge Valley タイマー</title>
+  <title>アラーム管理</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
-    <h1>Farm Merge Valley タイマー</h1>
-    <div class="notify-bar">
-      <button id="btnNotify">通知</button>
-      <button id="btnSound">音</button>
-      <button id="btnTest">テスト</button>
+    <h1>アラーム管理</h1>
+    <div class="notif-controls">
+      <button id="enableNotif">通知とサウンドを有効化</button>
     </div>
   </header>
 
   <main>
-    <!-- 上段 2カラム -->
     <div class="two-col">
       <!-- エネルギー回復アラーム -->
       <section class="card energy">
-        <h2>エネルギー回復アラーム</h2>
-        <div class="energy-grid">
-          <div class="energy-controls">
-            <label>現在エネルギー（0〜50）</label>
-            <input id="curEnergy" type="number" min="0" max="50" value="0" />
-            <div class="grid3">
-              <button id="startEnergy">開始</button>
-              <button id="stopEnergy">停止</button>
-              <button id="resetEnergy">リセット</button>
-            </div>
-          </div>
-          <div class="energy-display">
-            <div class="pill" id="energyTarget">目標時刻: —</div>
-            <div class="timer" id="energyRemain">—:—:—</div>
-            <div class="muted" id="energyHint">設定後に残り時間が表示されます。</div>
+        <h2>エネルギー回復</h2>
+
+        <!-- 初期/停止中UI -->
+        <div id="energyInputUI">
+          <label>現在エネルギー（0〜50）</label>
+          <input id="curEnergy" type="number" min="0" max="50" value="0" />
+          <button id="startEnergy">開始</button>
+          <div class="muted" id="energyHint">設定後に残り時間が表示されます。</div>
+        </div>
+
+        <!-- アラーム中UI -->
+        <div id="energyActiveUI" class="hidden">
+          <div class="timer" id="energyRemain">—:—:—</div>
+          <div class="pill" id="energyTarget">目標時刻: —</div>
+          <div class="muted">到達すると通知します。</div>
+          <div class="buttons">
+            <button id="stopEnergy">停止</button>
+            <button id="resetEnergy">リセット</button>
           </div>
         </div>
       </section>
 
       <!-- 物資アラーム -->
       <section class="card supply">
-        <h2>物資アラーム</h2>
-        <div class="supply-grid">
-          <div class="supply-controls">
-            <label>現在の物資（0〜40）</label>
-            <input id="curSupply" type="number" min="0" max="40" value="0" />
-            <div class="grid3">
-              <button id="startSupply">開始</button>
-              <button id="stopSupply">停止</button>
-              <button id="resetSupply">リセット</button>
-            </div>
-          </div>
-          <div class="supply-display">
-            <div class="pill" id="supplyTarget">満杯時刻: —</div>
-            <div class="pill warn" id="supplyAlert">36個超過: —</div>
-            <div class="timer" id="supplyRemain">—:—:—</div>
-            <div class="muted" id="supplyHint">設定後に残り時間が表示されます。</div>
+        <h2>物資</h2>
+
+        <!-- 初期/停止中UI -->
+        <div id="supplyInputUI">
+          <label>現在物資数（0〜40）</label>
+          <input id="curSupply" type="number" min="0" max="40" value="0" />
+          <button id="startSupply">開始</button>
+          <div class="muted" id="supplyHint">設定後に残り時間が表示されます。</div>
+        </div>
+
+        <!-- アラーム中UI -->
+        <div id="supplyActiveUI" class="hidden">
+          <div class="timer" id="supplyRemain">—:—:—</div>
+          <div class="pill" id="supplyTarget">満杯時刻: —</div>
+          <div class="pill" id="supplyAlert">36個超過: —</div>
+          <div class="muted">到達すると通知します。</div>
+          <div class="buttons">
+            <button id="stopSupply">停止</button>
+            <button id="resetSupply">リセット</button>
           </div>
         </div>
       </section>
@@ -76,13 +78,9 @@
         <button data-min="80" data-label="1時間20分">1時間20分</button>
         <button data-min="120" data-label="2時間">2時間</button>
       </div>
-      <div class="list" id="workerList"></div>
+      <div id="workerList"></div>
     </section>
   </main>
-
-  <audio id="beep" preload="auto">
-    <source src="data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABYAZGF0YQAAAP///wAAAAAAAP///wAAAAAAAP///wD///8AAAAAAP///wAAAAAAAP///wD///8AAAAAAP///wAAAAAA" type="audio/wav">
-  </audio>
 
   <script src="script.js"></script>
 </body>

@@ -1,210 +1,150 @@
-const $ = (s) => document.querySelector(s);
-const fmt = (ms) => {
+/* ===== ユーティリティ ===== */
+function $(sel) {
+  return document.querySelector(sel);
+}
+function fmt(ms) {
   if (ms < 0) ms = 0;
-  const s = Math.floor(ms / 1000);
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const ss = s % 60;
-  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${ss.toString().padStart(2, '0')}`;
-};
-const fmtDT = (t) => new Date(t).toLocaleString();
-
-const MAX_ENERGY = 50;
-const MIN_PER_UNIT = 3;
-const THRESHOLD = 50;
-
-const MAX_SUPPLY = 40;
-const SUPPLY_PER_5MIN = 5;
-const SUPPLY_INTERVAL_MS = 5 * 60 * 1000;
-
-let energyTimerActive = false;
-let supplyTimerActive = false;
-let canSound = false;
-let blinkTimer = null;
-let origTitle = document.title;
-
-const beepEl = $('#beep');
-const KEY = 'fmv_timers_v1';
-const load = () => {
-  try {
-    return JSON.parse(localStorage.getItem(KEY)) || { energy: null, supply: null, workers: [] };
-  } catch {
-    return { energy: null, supply: null, workers: [] };
-  }
-};
-const save = (data) => localStorage.setItem(KEY, JSON.stringify(data));
-let state = load();
-
-function setPermState() {
-  const btnN = $('#btnNotify');
-  if (Notification.permission === 'granted') btnN.classList.add('active'); else btnN.classList.remove('active');
-
-  const btnS = $('#btnSound');
-  if (canSound) btnS.classList.add('active'); else btnS.classList.remove('active');
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+function fmtDT(ts) {
+  const d = new Date(ts);
+  return `${d.getMonth() + 1}/${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
 }
 
-$('#btnNotify').addEventListener('click', async () => {
-  try {
-    const p = await Notification.requestPermission();
-    setPermState();
-    if (p !== 'granted') alert('通知が拒否/未許可です。ブラウザのサイト設定で許可してください。');
-  } catch {
-    alert('通知の許可に失敗しました。');
+/* ===== 通知 ===== */
+let blinkTimer;
+function notifyAll(title, body) {
+  if (Notification.permission === 'granted') {
+    new Notification(title, { body });
   }
-});
-$('#btnSound').addEventListener('click', async () => {
-  try {
-    await beepEl.play();
-    beepEl.pause();
-    beepEl.currentTime = 0;
-    canSound = true;
-    setPermState();
-  } catch (e) {
-    alert('サウンドの有効化に失敗。音量/自動再生設定をご確認ください。');
-  }
-});
-$('#btnTest').addEventListener('click', () => {
-  notifyAll('テスト通知', '通知・サウンド・タイトル点滅のテストです。');
-});
-
+  const audio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=');
+  audio.play();
+  startBlink();
+}
 function startBlink() {
-  if (blinkTimer) return;
-  let on = false;
+  stopBlink();
+  let flag = false;
   blinkTimer = setInterval(() => {
-    document.title = on ? '⏰ アラーム' : origTitle;
-    on = !on;
-  }, 800);
+    document.title = flag ? '【通知あり】' : 'アラーム管理';
+    flag = !flag;
+  }, 1000);
 }
 function stopBlink() {
-  if (blinkTimer) {
-    clearInterval(blinkTimer);
-    blinkTimer = null;
-    document.title = origTitle;
-  }
-}
-function notifyAll(title, body) {
-  if (document.hidden) startBlink();
-  if ('Notification' in window && Notification.permission === 'granted') {
-    try { new Notification(title, { body }); } catch (e) {}
-  }
-  if (canSound) {
-    try { beepEl.currentTime = 0; beepEl.play(); } catch (e) {}
-  }
-  if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
+  clearInterval(blinkTimer);
+  document.title = 'アラーム管理';
 }
 
+/* ===== 状態管理 ===== */
+let state = {
+  energy: null,
+  supply: null,
+  workers: []
+};
+function save(st) {
+  localStorage.setItem('alarmState', JSON.stringify(st));
+}
+function load() {
+  const s = localStorage.getItem('alarmState');
+  if (s) state = JSON.parse(s);
+}
+load();
+
 /* ===== エネルギー ===== */
+const MAX_ENERGY = 50;
+const ENERGY_INTERVAL_MS = 5 * 60 * 1000;
 function calcEnergyTarget(cur) {
-  if (cur >= THRESHOLD) return Date.now();
-  const need = THRESHOLD - cur;
-  const minutes = need * MIN_PER_UNIT;
-  return Date.now() + minutes * 60 * 1000;
+  const need = MAX_ENERGY - cur;
+  return Date.now() + need * ENERGY_INTERVAL_MS;
 }
+
 function renderEnergy() {
-  const tgt = state.energy?.targetAt;
-  const elRem = $('#energyRemain');
-  const elTgt = $('#energyTarget');
-  const hint = $('#energyHint');
-  if (!tgt) {
-    elRem.textContent = '—:—:—';
-    elTgt.textContent = '目標時刻: —';
-    hint.textContent = '設定後に残り時間が表示されます。';
-    return;
-  }
-  elTgt.textContent = '目標時刻: ' + fmtDT(tgt);
-  const remain = tgt - Date.now();
-  elRem.textContent = fmt(remain);
+  if (!state.energy) return;
+  const remain = state.energy.targetAt - Date.now();
+  $('#energyRemain').textContent = fmt(remain);
+  $('#energyTarget').textContent = '目標時刻: ' + fmtDT(state.energy.targetAt);
+
+  // 色分け
   if (remain <= 0) {
-    elRem.classList.add('energy-ok');
-    hint.textContent = 'しきい値に到達しました！';
+    $('#energyRemain').classList.add('energy-ok');
   } else {
-    elRem.classList.remove('energy-ok');
-    hint.textContent = '到達すると通知します。';
+    $('#energyRemain').classList.remove('energy-ok');
   }
 }
+
 function tickEnergy() {
-  if (!energyTimerActive || !state.energy?.targetAt) return;
-  const remain = state.energy.targetAt - Date.now();
-  const prevDue = state.energy.dueFired;
-  if (remain <= 0 && !prevDue) {
-    notifyAll('エネルギー到達', `エネルギーがしきい値に達しました。`);
+  if (!state.energy) return;
+  const now = Date.now();
+  const remain = state.energy.targetAt - now;
+  if (remain <= 0 && !state.energy.dueFired) {
+    notifyAll('エネルギーが最大になりました', '行動可能です。');
     state.energy.dueFired = true;
     save(state);
   }
   renderEnergy();
 }
+
+// 開始
 $('#startEnergy').addEventListener('click', () => {
   const cur = parseInt($('#curEnergy').value || '0', 10);
   if (cur < 0 || cur > MAX_ENERGY) {
-    alert('現在エネルギーは 0〜50 の範囲で入力してください。');
+    alert('0〜50の範囲で入力してください');
     return;
   }
   const targetAt = calcEnergyTarget(cur);
-  state.energy = {
-    cur,
-    targetAt,
-    dueFired: targetAt <= Date.now()
-  };
-  energyTimerActive = true;
+  state.energy = { cur, targetAt, dueFired: targetAt <= Date.now() };
   save(state);
-  stopBlink();
+
+  $('#energyInputUI').classList.add('hidden');
+  $('#energyActiveUI').classList.remove('hidden');
   renderEnergy();
 });
+// 停止
 $('#stopEnergy').addEventListener('click', () => {
-  energyTimerActive = false;
   state.energy = null;
   save(state);
-  renderEnergy();
+  $('#energyInputUI').classList.remove('hidden');
+  $('#energyActiveUI').classList.add('hidden');
 });
+// リセット
 $('#resetEnergy').addEventListener('click', () => {
-  $('#curEnergy').value = '';
-  energyTimerActive = false;
-  state.energy = null;
+  const targetAt = calcEnergyTarget(0);
+  state.energy = { cur: 0, targetAt, dueFired: targetAt <= Date.now() };
   save(state);
   renderEnergy();
 });
 
 /* ===== 物資 ===== */
+const MAX_SUPPLY = 40;
+const SUPPLY_INTERVAL_MS = 5 * 60 * 1000; // 5分ごとに5個
 function calcSupplyTarget(cur) {
-  if (cur >= MAX_SUPPLY) return Date.now();
   const need = MAX_SUPPLY - cur;
-  const steps = Math.ceil(need / SUPPLY_PER_5MIN);
-  return Date.now() + steps * SUPPLY_INTERVAL_MS;
+  return Date.now() + (need / 5) * SUPPLY_INTERVAL_MS;
 }
 function calcSupplyAlert(cur) {
   if (cur >= 36) return null;
   const need = 36 - cur;
-  const steps = Math.ceil(need / SUPPLY_PER_5MIN);
-  return Date.now() + steps * SUPPLY_INTERVAL_MS;
+  return Date.now() + (need / 5) * SUPPLY_INTERVAL_MS;
 }
+
 function renderSupply() {
-  const tgt = state.supply?.targetAt;
-  const alertAt = state.supply?.alertAt;
-  const elRem = $('#supplyRemain');
-  const elTgt = $('#supplyTarget');
-  const elAlt = $('#supplyAlert');
-  const hint = $('#supplyHint');
-  if (!tgt) {
-    elRem.textContent = '—:—:—';
-    elTgt.textContent = '満杯時刻: —';
-    elAlt.textContent = '36個超過: —';
-    hint.textContent = '設定後に残り時間が表示されます。';
-    return;
-  }
-  elTgt.textContent = '満杯時刻: ' + fmtDT(tgt);
-  elAlt.textContent = alertAt ? '36個超過: ' + fmtDT(alertAt) : '36個超過: —';
-  const remain = tgt - Date.now();
-  elRem.textContent = fmt(remain);
+  if (!state.supply) return;
+  const remain = state.supply.targetAt - Date.now();
+  $('#supplyRemain').textContent = fmt(remain);
+  $('#supplyTarget').textContent = '満杯時刻: ' + fmtDT(state.supply.targetAt);
+  $('#supplyAlert').textContent = state.supply.alertAt ? '36個超過: ' + fmtDT(state.supply.alertAt) : '—';
+
   if (remain <= 0) {
-    elRem.classList.add('supply-ok');
-    hint.textContent = '物資が満杯になりました！';
+    $('#supplyRemain').classList.add('supply-ok');
   } else {
-    elRem.classList.remove('supply-ok');
-    hint.textContent = '満杯になると通知します。';
+    $('#supplyRemain').classList.remove('supply-ok');
   }
 }
+
 function tickSupply() {
-  if (!supplyTimerActive || !state.supply?.targetAt) return;
+  if (!state.supply) return;
   const now = Date.now();
 
   if (!state.supply.alertFired && state.supply.alertAt && now >= state.supply.alertAt) {
@@ -212,7 +152,6 @@ function tickSupply() {
     state.supply.alertFired = true;
     save(state);
   }
-
   if (!state.supply.targetFired && now >= state.supply.targetAt) {
     notifyAll('物資が満杯になりました', '取りこぼさないようにしてください。');
     state.supply.targetFired = true;
@@ -220,36 +159,39 @@ function tickSupply() {
   }
   renderSupply();
 }
+
+// 開始
 $('#startSupply').addEventListener('click', () => {
   const cur = parseInt($('#curSupply').value || '0', 10);
   if (cur < 0 || cur > MAX_SUPPLY) {
-    alert('現在の物資は 0〜40 の範囲で入力してください。');
+    alert('0〜40の範囲で入力してください');
     return;
   }
   const targetAt = calcSupplyTarget(cur);
   const alertAt = calcSupplyAlert(cur);
   state.supply = {
-    cur,
-    targetAt,
-    alertAt,
+    cur, targetAt, alertAt,
     targetFired: targetAt <= Date.now(),
     alertFired: !alertAt || alertAt <= Date.now()
   };
-  supplyTimerActive = true;
   save(state);
-  stopBlink();
+
+  $('#supplyInputUI').classList.add('hidden');
+  $('#supplyActiveUI').classList.remove('hidden');
   renderSupply();
 });
+// 停止
 $('#stopSupply').addEventListener('click', () => {
-  supplyTimerActive = false;
   state.supply = null;
   save(state);
-  renderSupply();
+  $('#supplyInputUI').classList.remove('hidden');
+  $('#supplyActiveUI').classList.add('hidden');
 });
+// リセット
 $('#resetSupply').addEventListener('click', () => {
-  $('#curSupply').value = '';
-  supplyTimerActive = false;
-  state.supply = null;
+  const targetAt = calcSupplyTarget(0);
+  const alertAt = calcSupplyAlert(0);
+  state.supply = { cur: 0, targetAt, alertAt, targetFired: false, alertFired: false };
   save(state);
   renderSupply();
 });
@@ -288,6 +230,7 @@ function addWorkerItem(w) {
   w._elWrap = wrap;
   return wrap;
 }
+
 function tickWorkers() {
   for (const w of state.workers) {
     const r = w.targetAt - Date.now();
@@ -300,6 +243,7 @@ function tickWorkers() {
     }
   }
 }
+
 document.addEventListener('DOMContentLoaded', () => {
   $('#workerPresetButtons').addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-min]');
@@ -321,23 +265,27 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+/* ===== 復元 ===== */
+function restoreEnergyUI() {
+  if (state.energy) {
+    $('#energyInputUI').classList.add('hidden');
+    $('#energyActiveUI').classList.remove('hidden');
+    renderEnergy();
+  }
+}
+function restoreSupplyUI() {
+  if (state.supply) {
+    $('#supplyInputUI').classList.add('hidden');
+    $('#supplyActiveUI').classList.remove('hidden');
+    renderSupply();
+  }
+}
 function restoreWorkers() {
   $('#workerList').innerHTML = '';
   for (const w of state.workers) addWorkerItem(w);
 }
-function restoreEnergyUI() {
-  if (!state.energy) return;
-  $('#curEnergy').value = state.energy.cur ?? 0;
-  renderEnergy();
-}
-function restoreSupplyUI() {
-  if (!state.supply) return;
-  $('#curSupply').value = state.supply.cur ?? 0;
-  renderSupply();
-}
 
 /* ===== 起動時処理 ===== */
-setPermState();
 restoreEnergyUI();
 restoreSupplyUI();
 restoreWorkers();
@@ -355,4 +303,8 @@ document.addEventListener('visibilitychange', () => {
     tickSupply();
     tickWorkers();
   }
+});
+
+$('#enableNotif').addEventListener('click', () => {
+  Notification.requestPermission();
 });
