@@ -54,7 +54,7 @@ load();
 
 /* ===== エネルギー ===== */
 const MAX_ENERGY = 50;
-const ENERGY_INTERVAL_MS = 5 * 60 * 1000;
+const ENERGY_INTERVAL_MS = 3 * 60 * 1000;
 function calcEnergyTarget(cur) {
   const need = MAX_ENERGY - cur;
   return Date.now() + need * ENERGY_INTERVAL_MS;
@@ -308,3 +308,4 @@ document.addEventListener('visibilitychange', () => {
 $('#enableNotif').addEventListener('click', () => {
   Notification.requestPermission();
 });
+
