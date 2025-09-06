@@ -54,7 +54,7 @@ load();
 
 /* ===== エネルギー ===== */
 const MAX_ENERGY = 50;
-const ENERGY_INTERVAL_MS = 3 * 60 * 1000;
+const ENERGY_INTERVAL_MS = 5 * 60 * 1000;
 function calcEnergyTarget(cur) {
   const need = MAX_ENERGY - cur;
   return Date.now() + need * ENERGY_INTERVAL_MS;
@@ -66,11 +66,10 @@ function renderEnergy() {
   $('#energyRemain').textContent = fmt(remain);
   $('#energyTarget').textContent = '目標時刻: ' + fmtDT(state.energy.targetAt);
 
-  // 色分け
   if (remain <= 0) {
-    $('#energyRemain').classList.add('energy-ok');
+    document.querySelector('.energy').classList.add('done-energy');
   } else {
-    $('#energyRemain').classList.remove('energy-ok');
+    document.querySelector('.energy').classList.remove('done-energy');
   }
 }
 
@@ -81,6 +80,7 @@ function tickEnergy() {
   if (remain <= 0 && !state.energy.dueFired) {
     notifyAll('エネルギーが最大になりました', '行動可能です。');
     state.energy.dueFired = true;
+    document.querySelector('.energy').classList.add('done-energy');
     save(state);
   }
   renderEnergy();
@@ -105,6 +105,7 @@ $('#startEnergy').addEventListener('click', () => {
 $('#stopEnergy').addEventListener('click', () => {
   state.energy = null;
   save(state);
+  document.querySelector('.energy').classList.remove('done-energy');
   $('#energyInputUI').classList.remove('hidden');
   $('#energyActiveUI').classList.add('hidden');
 });
@@ -113,6 +114,7 @@ $('#resetEnergy').addEventListener('click', () => {
   const targetAt = calcEnergyTarget(0);
   state.energy = { cur: 0, targetAt, dueFired: targetAt <= Date.now() };
   save(state);
+  document.querySelector('.energy').classList.remove('done-energy');
   renderEnergy();
 });
 
@@ -137,9 +139,9 @@ function renderSupply() {
   $('#supplyAlert').textContent = state.supply.alertAt ? '36個超過: ' + fmtDT(state.supply.alertAt) : '—';
 
   if (remain <= 0) {
-    $('#supplyRemain').classList.add('supply-ok');
+    document.querySelector('.supply').classList.add('done-supply');
   } else {
-    $('#supplyRemain').classList.remove('supply-ok');
+    document.querySelector('.supply').classList.remove('done-supply');
   }
 }
 
@@ -155,6 +157,7 @@ function tickSupply() {
   if (!state.supply.targetFired && now >= state.supply.targetAt) {
     notifyAll('物資が満杯になりました', '取りこぼさないようにしてください。');
     state.supply.targetFired = true;
+    document.querySelector('.supply').classList.add('done-supply');
     save(state);
   }
   renderSupply();
@@ -184,6 +187,7 @@ $('#startSupply').addEventListener('click', () => {
 $('#stopSupply').addEventListener('click', () => {
   state.supply = null;
   save(state);
+  document.querySelector('.supply').classList.remove('done-supply');
   $('#supplyInputUI').classList.remove('hidden');
   $('#supplyActiveUI').classList.add('hidden');
 });
@@ -193,15 +197,26 @@ $('#resetSupply').addEventListener('click', () => {
   const alertAt = calcSupplyAlert(0);
   state.supply = { cur: 0, targetAt, alertAt, targetFired: false, alertFired: false };
   save(state);
+  document.querySelector('.supply').classList.remove('done-supply');
   renderSupply();
 });
 
 /* ===== 労働者 ===== */
+
+// 共通の削除アニメーション関数
+function removeWorkerWithAnimation(wrap, workerId) {
+  wrap.classList.add('removing');
+  setTimeout(() => {
+    state.workers = state.workers.filter(x => x.id !== workerId);
+    save(state);
+    if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+  }, 400);
+}
+
 function addWorkerItem(w) {
   const wrap = document.createElement('div');
   wrap.className = 'item';
   const left = document.createElement('div');
-  left.className = 'left';
   const title = document.createElement('div');
   title.innerHTML = `<div><strong>労働者 ${w.label || (w.minutes + '分')}</strong></div>
                      <div class="pill">完了: ${fmtDT(w.targetAt)}</div>`;
@@ -212,13 +227,10 @@ function addWorkerItem(w) {
   left.appendChild(remain);
 
   const right = document.createElement('div');
-  right.className = 'right';
   const btnDone = document.createElement('button');
   btnDone.textContent = '削除';
   btnDone.addEventListener('click', () => {
-    state.workers = state.workers.filter((x) => x.id !== w.id);
-    save(state);
-    $('#workerList').removeChild(wrap);
+    removeWorkerWithAnimation(wrap, w.id);
   });
   right.appendChild(btnDone);
 
@@ -228,6 +240,11 @@ function addWorkerItem(w) {
 
   w._elRemain = remain;
   w._elWrap = wrap;
+
+  if (w.fired) {
+    wrap.classList.add('done-worker');
+  }
+
   return wrap;
 }
 
@@ -238,7 +255,7 @@ function tickWorkers() {
     if (r <= 0 && !w.fired) {
       notifyAll('労働者が準備OK', '次の作業が可能です。');
       w.fired = true;
-      if (w._elRemain) w._elRemain.classList.add('worker-ok');
+      if (w._elWrap) w._elWrap.classList.add('done-worker');
       save(state);
     }
   }
@@ -248,6 +265,14 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#workerPresetButtons').addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-min]');
     if (!btn) return;
+
+    // 完了済みをアニメーションで削除
+    for (const w of [...state.workers]) {
+      if (w.fired && w._elWrap) {
+        removeWorkerWithAnimation(w._elWrap, w.id);
+      }
+    }
+
     const min = parseFloat(btn.dataset.min);
     const label = btn.dataset.label || (min + '分');
     const now = Date.now();
@@ -308,4 +333,3 @@ document.addEventListener('visibilitychange', () => {
 $('#enableNotif').addEventListener('click', () => {
   Notification.requestPermission();
 });
-
