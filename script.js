@@ -75,7 +75,37 @@ function updateEventUI() {
     eventBtn.classList.remove('active');
     eventBtn.textContent = 'イベントOFF';
   }
+
+  // ←ここを追加
+  updateWorkerPresetLabels();
 }
+
+function updateWorkerPresetLabels() {
+  const buttons = document.querySelectorAll('#workerPresetButtons button[data-min]');
+  buttons.forEach(btn => {
+    const min = parseFloat(btn.dataset.min);
+    const labelEl = btn.querySelector('.label') || btn;
+
+    // 半減処理
+    const effectiveMin = isHalfEvent ? min / 2 : min;
+
+    // 秒単位で正確に（丸め誤差対策）
+    const totalSec = Math.round(effectiveMin * 60);
+
+    const hours = Math.floor(totalSec / 3600);
+    const minutes = Math.floor((totalSec % 3600) / 60);
+    const seconds = totalSec % 60;
+
+    // フォーマット
+    let label = '';
+    if (hours > 0) label += `${hours}時間`;
+    if (minutes > 0) label += `${minutes}分`;
+    if (seconds > 0) label += `${seconds}秒`;
+
+    labelEl.textContent = label || '0秒';
+  });
+}
+
 
 // 起動時復元
 document.addEventListener('DOMContentLoaded', () => {
