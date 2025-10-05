@@ -1,0 +1,21 @@
+{
+  "name": "FMV用アラーム管理",
+  "short_name": "FMV用アラーム",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1e1e2f",
+  "theme_color": "#5b21b6",
+  "description": "FMV用エネルギー・物資・労働者アラーム管理ツール",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

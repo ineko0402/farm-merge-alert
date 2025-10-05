@@ -178,3 +178,29 @@ button:hover {
   transform: scale(0.95);
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
+
+/* イベントON時のヘッダー */
+header.event-active {
+  background: #5b21b6;  /* 落ち着いた濃い紫 */
+  color: #fff;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+header.event-active h1 {
+  color: #fff;
+}
+
+.event-btn {
+  background: #44294c;
+  border: 1px solid #999;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.event-btn.active {
+  background: #7c3aed;  /* ボタンON時（濃い紫） */
+  color: #fff;
+  border-color: #7c3aed;
+}

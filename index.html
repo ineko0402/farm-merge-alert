@@ -4,15 +4,28 @@
   <meta charset="UTF-8" />
   <title>アラーム管理</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="favicon.PNG" type="image/png" sizes="64x64">
+  <!-- <link rel="icon" href="favicon_32x32" type="image/png" sizes="32x32"> -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#5b21b6">
+  <link rel="icon" href="icon-192.png">
+  <script>
+    // Service Worker 登録
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js');
+      });
+    }
+  </script>
 </head>
 <body>
   <header>
-    <h1>アラーム管理</h1>
-    <div class="notif-controls">
-      <button id="enableNotif">通知とサウンドを有効化</button>
-    </div>
+  <h1>アラーム管理</h1>
+  <div class="notif-controls">
+    <button id="enableNotif">通知とサウンドを有効化</button>
+    <button id="halfEventButton" class="event-btn">作業・回復時間短縮イベント中</button>
+  </div>
   </header>
+
 
   <main>
     <div class="two-col">
@@ -86,4 +99,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-

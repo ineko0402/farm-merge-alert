@@ -20,10 +20,26 @@ function notifyAll(title, body) {
   if (Notification.permission === 'granted') {
     new Notification(title, { body });
   }
-  const audio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=');
-  audio.play();
+
+  // === サウンド改良 ===
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.value = 880; // ピッという高めの音
+    g.gain.setValueAtTime(0.1, ctx.currentTime);
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.start();
+    o.stop(ctx.currentTime + 0.2); // 0.2秒で止める
+  } catch (err) {
+    console.warn('音声再生エラー', err);
+  }
+
   startBlink();
 }
+
 function startBlink() {
   stopBlink();
   let flag = false;
@@ -36,6 +52,40 @@ function stopBlink() {
   clearInterval(blinkTimer);
   document.title = 'アラーム管理';
 }
+
+/* ===== 期間限定イベント ===== */
+let isHalfEvent = false;
+
+const eventBtn = $('#halfEventButton');
+
+eventBtn.addEventListener('click', () => {
+  isHalfEvent = !isHalfEvent;
+  localStorage.setItem('halfEvent', JSON.stringify(isHalfEvent));
+  updateEventUI();
+});
+
+function updateEventUI() {
+  const header = document.querySelector('header');
+  if (isHalfEvent) {
+    header.classList.add('event-active');
+    eventBtn.classList.add('active');
+    eventBtn.textContent = 'イベント中（短縮有効）';
+  } else {
+    header.classList.remove('event-active');
+    eventBtn.classList.remove('active');
+    eventBtn.textContent = 'イベントOFF';
+  }
+}
+
+// 起動時復元
+document.addEventListener('DOMContentLoaded', () => {
+  const savedHalfEvent = localStorage.getItem('halfEvent');
+  if (savedHalfEvent !== null) {
+    isHalfEvent = JSON.parse(savedHalfEvent);
+  }
+  updateEventUI();
+});
+
 
 /* ===== 状態管理 ===== */
 let state = {
@@ -54,10 +104,13 @@ load();
 
 /* ===== エネルギー ===== */
 const MAX_ENERGY = 50;
-const ENERGY_INTERVAL_MS = 5 * 60 * 1000;
+const ENERGY_INTERVAL_MS_NORMAL = 5 * 60 * 1000;  // 通常
+const ENERGY_INTERVAL_MS_EVENT  = 3 * 60 * 1000;  // イベント時
+
 function calcEnergyTarget(cur) {
   const need = MAX_ENERGY - cur;
-  return Date.now() + need * ENERGY_INTERVAL_MS;
+  const interval = isHalfEvent ? ENERGY_INTERVAL_MS_EVENT : ENERGY_INTERVAL_MS_NORMAL;
+  return Date.now() + need * interval;
 }
 
 function renderEnergy() {
@@ -276,13 +329,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const min = parseFloat(btn.dataset.min);
     const label = btn.dataset.label || (min + '分');
     const now = Date.now();
+    const FIXED_REDUCTION_MS = 30 * 1000;
+
+    // ✅ isHalfEvent はグローバル変数を使う
+    const durationMs = (min * 60 * 1000) * (isHalfEvent ? 0.5 : 1);
+
     const w = {
       id: 'w_' + now + '_' + Math.random().toString(36).slice(2),
-      targetAt: now + min * 60 * 1000,
+      targetAt: now + durationMs - FIXED_REDUCTION_MS,
       fired: false,
       minutes: min,
       label: label
     };
+
     state.workers.push(w);
     save(state);
     addWorkerItem(w);
@@ -314,6 +373,12 @@ function restoreWorkers() {
 restoreEnergyUI();
 restoreSupplyUI();
 restoreWorkers();
+// ===== 起動時にイベント状態を復元 =====
+const savedHalfEvent = localStorage.getItem('halfEvent');
+if (savedHalfEvent !== null) {
+  isHalfEvent = JSON.parse(savedHalfEvent);
+  $('#halfEventToggle').checked = isHalfEvent;
+}
 
 setInterval(() => {
   tickEnergy();
