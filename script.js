@@ -407,7 +407,7 @@ restoreWorkers();
 const savedHalfEvent = localStorage.getItem('halfEvent');
 if (savedHalfEvent !== null) {
   isHalfEvent = JSON.parse(savedHalfEvent);
-  $('#halfEventToggle').checked = isHalfEvent;
+  updateEventUI(); 
 }
 
 setInterval(() => {
@@ -428,3 +428,4 @@ document.addEventListener('visibilitychange', () => {
 $('#enableNotif').addEventListener('click', () => {
   Notification.requestPermission();
 });
+
