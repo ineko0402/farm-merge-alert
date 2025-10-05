@@ -400,32 +400,40 @@ function restoreWorkers() {
 }
 
 /* ===== 起動時処理 ===== */
-restoreEnergyUI();
-restoreSupplyUI();
-restoreWorkers();
-// ===== 起動時にイベント状態を復元 =====
-const savedHalfEvent = localStorage.getItem('halfEvent');
-if (savedHalfEvent !== null) {
-  isHalfEvent = JSON.parse(savedHalfEvent);
-  updateEventUI(); 
-}
+document.addEventListener('DOMContentLoaded', () => {
 
-setInterval(() => {
-  tickEnergy();
-  tickSupply();
-  tickWorkers();
-}, 1000);
+  // 各セクションの復元
+  restoreEnergyUI();
+  restoreSupplyUI();
+  restoreWorkers();
 
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) {
-    stopBlink();
+  // イベント状態の復元
+  const savedHalfEvent = localStorage.getItem('halfEvent');
+  if (savedHalfEvent !== null) {
+    isHalfEvent = JSON.parse(savedHalfEvent);
+  }
+  updateEventUI();
+
+  // タイマー更新ループ
+  setInterval(() => {
     tickEnergy();
     tickSupply();
     tickWorkers();
-  }
-});
+  }, 1000);
 
-$('#enableNotif').addEventListener('click', () => {
-  Notification.requestPermission();
-});
+  // タブ再表示時のリフレッシュ
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      stopBlink();
+      tickEnergy();
+      tickSupply();
+      tickWorkers();
+    }
+  });
 
+  // 通知とサウンドの有効化
+  $('#enableNotif').addEventListener('click', () => {
+    Notification.requestPermission();
+  });
+
+});
