@@ -16,6 +16,23 @@
       });
     }
   </script>
+  <script>
+  // 開発時にキャッシュを無効化する
+  (function() {
+    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:';
+    if (isLocal) {
+      const version = '?v=' + Date.now(); // 毎回ユニークな値
+      const links = document.querySelectorAll('link[rel="stylesheet"], link[rel="manifest"]');
+      const scripts = document.querySelectorAll('script[src]');
+      [...links, ...scripts].forEach(el => {
+        el.href && (el.href += version);
+        el.src && (el.src += version);
+      });
+      console.log('💡 開発モード: キャッシュ無効化中');
+    }
+  })();
+</script>
+
 </head>
 <body>
   <header>
