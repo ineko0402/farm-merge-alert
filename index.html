@@ -17,18 +17,28 @@
     }
   </script>
   <script>
-  // 開発時にキャッシュを無効化する
   (function() {
-    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:';
-    if (isLocal) {
-      const version = '?v=' + Date.now(); // 毎回ユニークな値
+    // 開発モード判定
+    // あなたの開発用URLに合わせてここを編集
+    const isDev = location.hostname.includes('github.io') || location.hostname === 'localhost' || location.protocol === 'file:';
+
+    if (isDev) {
+      // キャッシュ無効化（CSS・JS・manifest）
+      const version = '?v=' + Date.now();
       const links = document.querySelectorAll('link[rel="stylesheet"], link[rel="manifest"]');
       const scripts = document.querySelectorAll('script[src]');
       [...links, ...scripts].forEach(el => {
-        el.href && (el.href += version);
-        el.src && (el.src += version);
+        if (el.href) el.href += version;
+        if (el.src) el.src += version;
       });
-      console.log('💡 開発モード: キャッシュ無効化中');
+      console.log('💡 開発モード: キャッシュ無効化中 (' + location.hostname + ')');
+
+      // Service WorkerとCache削除
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(r => r.forEach(x => x.unregister()));
+        caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+        console.log('⚠️ Service Worker / Cache 削除済み');
+      }
     }
   })();
 </script>

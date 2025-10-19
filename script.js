@@ -32,7 +32,7 @@ function notifyAll(title, body) {
     o.connect(g);
     g.connect(ctx.destination);
     o.start();
-    o.stop(ctx.currentTime + 0.2); // 0.2秒で止める
+    o.stop(ctx.currentTime + 0.3); // 0.2秒で止める
   } catch (err) {
     console.warn('音声再生エラー', err);
   }
@@ -289,6 +289,8 @@ $('#resetSupply').addEventListener('click', () => {
 // 共通の削除アニメーション関数
 function removeWorkerWithAnimation(wrap, workerId) {
   wrap.classList.add('removing');
+  // stopBlinkを追加：削除と同時に点滅停止
+  stopBlink();
   setTimeout(() => {
     state.workers = state.workers.filter(x => x.id !== workerId);
     save(state);
