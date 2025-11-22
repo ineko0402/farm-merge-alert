@@ -2,9 +2,12 @@
   --bg: #1e1e1e;
   --fg: #eee;
   --muted: #888;
-  --accent: #4caf50;   /* 物資用 緑 */
-  --warn: #fbc02d;     /* エネルギー用 黄色 */
-  --worker: #c792ea;   /* 労働者用 紫 */
+  --accent: #4caf50;
+  /* 物資用 緑 */
+  --warn: #fbc02d;
+  /* エネルギー用 黄色 */
+  --worker: #c792ea;
+  /* 労働者用 紫 */
   --card-bg: #2a2a2a;
   --border: #444;
 }
@@ -75,6 +78,7 @@ button {
   color: var(--fg);
   cursor: pointer;
 }
+
 button:hover {
   background: #555;
 }
@@ -111,9 +115,11 @@ button:hover {
 .timer.energy-ok {
   color: var(--warn);
 }
+
 .timer.supply-ok {
   color: var(--accent);
 }
+
 .timer.worker-ok {
   color: var(--worker);
 }
@@ -122,6 +128,7 @@ button:hover {
 #workerList {
   margin-top: 0.5rem;
 }
+
 .item {
   display: flex;
   justify-content: space-between;
@@ -129,12 +136,15 @@ button:hover {
   padding: 0.3rem 0;
   border-top: 1px solid var(--border);
 }
+
 .item:first-child {
   border-top: none;
 }
+
 .item .timer {
   font-size: 1.8rem;
 }
+
 .item.done .timer {
   color: var(--worker);
 }
@@ -146,6 +156,7 @@ button:hover {
   gap: 0.3rem;
   margin-bottom: 0.5rem;
 }
+
 .preset-bar button {
   font-size: 0.8rem;
   padding: 0.2rem 0.5rem;
@@ -153,24 +164,29 @@ button:hover {
 
 /*フォント色ではなくカード全体の色を変える*/
 .card.done-energy {
-  background: #665c1e;  /* 黄色系 */
+  background: #665c1e;
+  /* 黄色系 */
 }
+
 .card.done-supply {
-  background: #1e5c2a;  /* 緑系 */
+  background: #1e5c2a;
+  /* 緑系 */
 }
 
 /* 労働者完了（個別タイマー要素） */
 .item.done-worker {
-  background: var(--worker);   /* 紫 */
-  color: #000;                 /* 文字は濃くして読みやすく */
-  border-color: rgba(0,0,0,0.15);
+  background: var(--worker);
+  /* 紫 */
+  color: #000;
+  /* 文字は濃くして読みやすく */
+  border-color: rgba(0, 0, 0, 0.15);
   transition: background 0.25s ease;
 }
 
 /* pill 等の見た目微調整 */
 .item.done-worker .pill {
   color: #000;
-  border-color: rgba(0,0,0,0.15);
+  border-color: rgba(0, 0, 0, 0.15);
 }
 
 .item.removing {
@@ -181,7 +197,8 @@ button:hover {
 
 /* イベントON時のヘッダー */
 header.event-active {
-  background: #5b21b6;  /* 落ち着いた濃い紫 */
+  background: #5b21b6;
+  /* 落ち着いた濃い紫 */
   color: #fff;
   transition: background 0.3s ease, color 0.3s ease;
 }
@@ -200,7 +217,8 @@ header.event-active h1 {
 }
 
 .event-btn.active {
-  background: #7c3aed;  /* ボタンON時（濃い紫） */
+  background: #7c3aed;
+  /* ボタンON時（濃い紫） */
   color: #fff;
   border-color: #7c3aed;
 }
@@ -215,16 +233,21 @@ header.event-active h1 {
   align-items: center;
   padding: 6px 10px;
   border-radius: 8px;
-  border: 1px solid #ccc;
-  background: #fafafa;
+  border: 1px solid #444;
+  /* 枠線を暗めに */
+  background: #1e1e1e;
+  /* ダーク背景 */
   margin-bottom: 8px;
   gap: 12px;
+  color: #f0f0f0;
+  /* 全体の文字色を明るめに */
 }
 
 /* 左：ラベル部分 */
 .worker-left {
   min-width: 90px;
   font-weight: bold;
+  color: #fff;
 }
 
 /* 中央：残り時間＋完了予定 */
@@ -236,8 +259,9 @@ header.event-active h1 {
 }
 
 .worker-mid .timer {
-  font-size: 18px;      /* 目立たせる */
+  font-size: 18px;
   font-weight: bold;
+  color: #ffffff;
 }
 
 /* 右：調整 + 削除 */
@@ -256,14 +280,17 @@ header.event-active h1 {
 .worker-adjust-inline button {
   padding: 4px 8px;
   font-size: 12px;
-  border: 1px solid #999;
+  border: 1px solid #666;
   border-radius: 4px;
-  background: #eee;
+  background: #2a2a2a;
+  /* ダークボタン */
+  color: #f0f0f0;
   cursor: pointer;
 }
 
 .worker-adjust-inline button:hover {
-  background: #e1e1e1;
+  background: #3a3a3a;
+  /* ホバー時に少し明るく */
 }
 
 /* 完了時の背景色（既存と統合） */
@@ -274,8 +301,8 @@ header.event-active h1 {
 
 .done-worker .worker-adjust-inline button,
 .done-worker button {
-  background: #FFF2;
-  border-color: #fff8;
+  background: #ffffff22;
+  border-color: #ffffff44;
   color: #fff;
 }
 
@@ -285,10 +312,13 @@ header.event-active h1 {
 
 /* pill（完了予定） */
 .pill {
-  background: #ddd;
+  background: #333;
+  /* pillも暗めに */
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 11px;
   display: inline-block;
   width: fit-content;
+  color: #ddd;
+  /* pill文字は薄グレー */
 }
