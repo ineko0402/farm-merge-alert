@@ -2,20 +2,21 @@
   --bg: #1e1e1e;
   --fg: #eee;
   --muted: #888;
-  --accent: #4caf50;
-  /* 物資用 緑 */
-  --warn: #fbc02d;
-  /* エネルギー用 黄色 */
-  --worker: #c792ea;
-  /* 労働者用 紫 */
+  --accent: #4caf50;     /* 物資緑 */
+  --warn: #fbc02d;       /* エネルギー黄 */
+  --worker: #c792ea;     /* 労働者紫 */
+  --event: #7c3aed;      /* イベント紫 */
   --card-bg: #2a2a2a;
+  --card-bg-hover: #333;
   --border: #444;
+  --shadow: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-hover: 0 12px 24px rgba(0,0,0,0.6);
 }
 
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
   margin: 0;
   padding: 0;
 }
@@ -26,12 +27,15 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: background 0.3s;
 }
 
-h1 {
-  margin: 0;
-  font-size: 1.2rem;
+header.event-active {
+  background: #5b21b6;
 }
+
+h1 { margin: 0; font-size: 1.3rem; }
+h2 { margin: 0 0 0.8rem; font-size: 1.1rem; }
 
 main {
   padding: 1rem;
@@ -46,279 +50,172 @@ main {
   gap: 1rem;
 }
 
+/* ===== 共通カード（マテリアル風）===== */
 .card {
   background: var(--card-bg);
+  border-radius: 16px;
+  padding: 1.2rem;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 1rem;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
 }
 
-h2 {
-  margin-top: 0;
-  font-size: 1rem;
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  background: var(--card-bg-hover);
 }
 
-label {
-  display: block;
-  margin-bottom: 0.3rem;
+/* 色分け強化 */
+.energy h2 { color: var(--warn); }
+.supply h2 { color: var(--accent); }
+.workers h2 { color: var(--worker); }
+
+.timer { font-size: 2.2rem; font-weight: bold; margin: 0.5rem 0; }
+.energy .timer { color: var(--warn); }
+.supply .timer { color: var(--accent); }
+
+.pill {
+  display: inline-block;
+  padding: 0.25rem 0.8rem;
+  background: #333;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: #ddd;
 }
 
-input[type=number] {
-  width: 5rem;
-  padding: 0.3rem;
-  margin-right: 0.5rem;
-}
+/* 完了時のカード背景 */
+.card.done-energy { background: #665c1e; }
+.card.done-supply { background: #1e5c2a; }
 
+/* ===== ボタン ===== */
 button {
-  padding: 0.3rem 0.7rem;
-  margin: 0.2rem;
-  border: 1px solid var(--border);
-  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
   background: #444;
   color: var(--fg);
   cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
 }
 
 button:hover {
   background: #555;
+  transform: translateY(-1px);
 }
 
-.muted {
-  font-size: 0.8rem;
-  color: var(--muted);
-  margin-top: 0.3rem;
-}
+/* リソース別ホバーカラー */
+.energy button:hover { background: var(--warn); color: #000; }
+.supply button:hover { background: var(--accent); color: #000; }
+.workers button:hover { background: var(--worker); color: #000; }
 
-.pill {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  font-size: 0.8rem;
-  margin-top: 0.3rem;
-}
-
-.timer {
-  font-size: 2rem;
-  margin: 0.5rem 0;
-}
-
-.hidden {
-  display: none !important;
-}
-
-.buttons {
-  margin-top: 0.5rem;
-}
-
-/* 色分け */
-.timer.energy-ok {
-  color: var(--warn);
-}
-
-.timer.supply-ok {
-  color: var(--accent);
-}
-
-.timer.worker-ok {
-  color: var(--worker);
-}
-
-/* 労働者リスト */
-#workerList {
-  margin-top: 0.5rem;
-}
-
-.item {
-  display: flex;
-  justify-content: space-between;
+/* ===== 労働者カード完全刷新 ===== */
+.worker-item {
+  background: linear-gradient(135deg, #2a2a2a 0%, #222 100%);
+  border: 1px solid #555;
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  padding: 0.3rem 0;
-  border-top: 1px solid var(--border);
+  gap: 16px;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
 }
 
-.item:first-child {
-  border-top: none;
+.worker-item:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+  background: linear-gradient(135deg, #333 0%, #2a2a2a 100%);
 }
 
-.item .timer {
-  font-size: 1.8rem;
-}
-
-.item.done .timer {
-  color: var(--worker);
-}
-
-/* プリセットボタン */
-.preset-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  margin-bottom: 0.5rem;
-}
-
-.preset-bar button {
-  font-size: 0.8rem;
-  padding: 0.2rem 0.5rem;
-}
-
-/*フォント色ではなくカード全体の色を変える*/
-.card.done-energy {
-  background: #665c1e;
-  /* 黄色系 */
-}
-
-.card.done-supply {
-  background: #1e5c2a;
-  /* 緑系 */
-}
-
-/* 労働者完了（個別タイマー要素） */
-.item.done-worker {
-  background: var(--worker);
-  /* 紫 */
-  color: #000;
-  /* 文字は濃くして読みやすく */
-  border-color: rgba(0, 0, 0, 0.15);
-  transition: background 0.25s ease;
-}
-
-/* pill 等の見た目微調整 */
-.item.done-worker .pill {
-  color: #000;
-  border-color: rgba(0, 0, 0, 0.15);
-}
-
-.item.removing {
-  opacity: 0;
-  transform: scale(0.95);
-  transition: opacity 0.4s ease, transform 0.4s ease;
-}
-
-/* イベントON時のヘッダー */
-header.event-active {
-  background: #5b21b6;
-  /* 落ち着いた濃い紫 */
-  color: #fff;
-  transition: background 0.3s ease, color 0.3s ease;
-}
-
-header.event-active h1 {
-  color: #fff;
-}
-
-.event-btn {
-  background: #44294c;
-  border: 1px solid #999;
-  border-radius: 6px;
-  padding: 6px 10px;
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.event-btn.active {
-  background: #7c3aed;
-  /* ボタンON時（濃い紫） */
-  color: #fff;
-  border-color: #7c3aed;
-}
-
-/* =========================================
-   労働者カード（worker-card）
-   ========================================= */
-
-.worker-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid #444;
-  /* 枠線を暗めに */
-  background: #1e1e1e;
-  /* ダーク背景 */
-  margin-bottom: 8px;
-  gap: 12px;
-  color: #f0f0f0;
-  /* 全体の文字色を明るめに */
-}
-
-/* 左：ラベル部分 */
 .worker-left {
-  min-width: 90px;
   font-weight: bold;
   color: #fff;
-}
-
-/* 中央：残り時間＋完了予定 */
-.worker-mid {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  min-width: 80px;
 }
 
 .worker-mid .timer {
-  font-size: 18px;
-  font-weight: bold;
-  color: #ffffff;
+  font-size: 1.6rem;
+  color: var(--worker);
 }
 
-/* 右：調整 + 削除 */
+.worker-mid .pill {
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
 .worker-right {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: flex-end;
+  gap: 8px;
 }
 
-.worker-adjust-inline {
-  display: flex;
-  gap: 6px;
+.worker-right button {
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  min-width: 40px;
 }
 
-.worker-adjust-inline button {
-  padding: 4px 8px;
-  font-size: 12px;
-  border: 1px solid #666;
-  border-radius: 4px;
-  background: #2a2a2a;
-  /* ダークボタン */
-  color: #f0f0f0;
-  cursor: pointer;
-}
-
-.worker-adjust-inline button:hover {
-  background: #3a3a3a;
-  /* ホバー時に少し明るく */
-}
-
-/* 完了時の背景色（既存と統合） */
-.done-worker {
-  background: #4a2a6b !important;
+/* 労働者完了時 */
+.worker-item.done-worker {
+  background: linear-gradient(135deg, #4a2a6b, #5b2a8b) !important;
   color: #fff;
 }
 
-.done-worker .worker-adjust-inline button,
-.done-worker button {
-  background: #ffffff22;
-  border-color: #ffffff44;
+.worker-item.done-worker .timer {
   color: #fff;
 }
 
-.done-worker .worker-adjust-inline button:hover {
-  background: #ffffff33;
+.worker-item.done-worker button {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
 }
 
-/* pill（完了予定） */
-.pill {
+.worker-item.done-worker button:hover {
+  background: rgba(255,255,255,0.35);
+}
+
+/* 削除アニメーション */
+.worker-item.removing {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: all 0.4s ease;
+}
+
+/* プリセットボタン */
+.preset-bar button {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.8rem;
+}
+
+/* イベントボタン */
+.event-btn.active {
+  background: var(--event);
+  color: #fff;
+}
+
+/* その他微調整 */
+input[type=number] {
+  width: 6rem;
+  padding: 0.5rem;
   background: #333;
-  /* pillも暗めに */
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 11px;
-  display: inline-block;
-  width: fit-content;
-  color: #ddd;
-  /* pill文字は薄グレー */
+  border: 1px solid #555;
+  border-radius: 8px;
+  color: var(--fg);
+}
+
+.hidden { display: none !important; }
+
+/* スマホ対応（599px以下） */
+@media (max-width: 599px) {
+  .two-col {
+    grid-template-columns: 1fr;   /* エネルギー・物資を縦並び */
+  }
+  main {
+    display: flex;
+    flex-direction: column;
+  }
+  .workers { order: -1; }        /* 労働者を一番上に移動 */
 }
