@@ -135,7 +135,7 @@ load();
 /* ===== エネルギー ===== */
 const MAX_ENERGY = 50;
 const ENERGY_INTERVAL_MS_NORMAL = 5 * 60 * 1000;  // 通常
-const ENERGY_INTERVAL_MS_EVENT  = 3 * 60 * 1000;  // イベント時
+const ENERGY_INTERVAL_MS_EVENT = 3 * 60 * 1000;  // イベント時
 
 function calcEnergyTarget(cur) {
   const need = MAX_ENERGY - cur;
@@ -227,7 +227,6 @@ function renderSupply() {
     document.querySelector('.supply').classList.remove('done-supply');
   }
 }
-
 function tickSupply() {
   if (!state.supply) return;
   const now = Date.now();
@@ -300,31 +299,77 @@ function removeWorkerWithAnimation(wrap, workerId) {
 
 function addWorkerItem(w) {
   const wrap = document.createElement('div');
-  wrap.className = 'item';
+  wrap.className = 'item worker-card'; // 必要なら専用スタイル用
+
+  // --- 左（ラベル） ---
   const left = document.createElement('div');
-  const title = document.createElement('div');
-  title.innerHTML = `<div><strong>労働者 ${w.label || (w.minutes + '分')}</strong></div>
-                     <div class="pill">完了: ${fmtDT(w.targetAt)}</div>`;
+  left.className = 'worker-left';
+  left.innerHTML = `<strong>労働者 ${w.label || (w.minutes + '分')}</strong>`;
+
+  // --- 中央（時間情報） ---
+  const mid = document.createElement('div');
+  mid.className = 'worker-mid';
+
   const remain = document.createElement('div');
   remain.className = 'timer';
   remain.textContent = fmt(w.targetAt - Date.now());
-  left.appendChild(title);
-  left.appendChild(remain);
 
+  const pill = document.createElement('div');
+  pill.className = 'pill';
+  pill.textContent = '完了: ' + fmtDT(w.targetAt);
+
+  mid.appendChild(remain);
+  mid.appendChild(pill);
+
+  // --- 右カラム（操作系）---
   const right = document.createElement('div');
+  right.className = 'worker-right';
+
+  const adjustDiv = document.createElement('div');
+  adjustDiv.className = 'worker-adjust-inline';
+  const btnPlus = document.createElement('button');
+  btnPlus.textContent = '+1';
+  const btnMinus = document.createElement('button');
+  btnMinus.textContent = '-1';
+
+  adjustDiv.appendChild(btnPlus);
+  adjustDiv.appendChild(btnMinus);
+
   const btnDone = document.createElement('button');
   btnDone.textContent = '削除';
-  btnDone.addEventListener('click', () => {
-    removeWorkerWithAnimation(wrap, w.id);
-  });
+
+  right.appendChild(adjustDiv);
   right.appendChild(btnDone);
 
   wrap.appendChild(left);
+  wrap.appendChild(mid);
   wrap.appendChild(right);
-  $('#workerList').appendChild(wrap);
 
+  // --- イベント登録 ---
+  btnPlus.addEventListener('click', () => {
+    w.targetAt += 60 * 1000;
+    pill.textContent = '完了: ' + fmtDT(w.targetAt);
+    save(state);
+    tickWorkers();
+  });
+
+  btnMinus.addEventListener('click', () => {
+    const newTarget = w.targetAt - 60 * 1000;
+    w.targetAt = Math.max(Date.now() + 1000, newTarget);
+    pill.textContent = '完了: ' + fmtDT(w.targetAt);
+    save(state);
+    tickWorkers();
+  });
+
+  btnDone.addEventListener('click', () => {
+    removeWorkerWithAnimation(wrap, w.id);
+  });
+
+  // --- 状態反映 ---
+  $('#workerList').appendChild(wrap);
   w._elRemain = remain;
   w._elWrap = wrap;
+  w._elPill = pill;
 
   if (w.fired) {
     wrap.classList.add('done-worker');
@@ -332,6 +377,8 @@ function addWorkerItem(w) {
 
   return wrap;
 }
+
+
 
 function tickWorkers() {
   for (const w of state.workers) {

@@ -204,3 +204,91 @@ header.event-active h1 {
   color: #fff;
   border-color: #7c3aed;
 }
+
+/* =========================================
+   労働者カード（worker-card）
+   ========================================= */
+
+.worker-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: #fafafa;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+/* 左：ラベル部分 */
+.worker-left {
+  min-width: 90px;
+  font-weight: bold;
+}
+
+/* 中央：残り時間＋完了予定 */
+.worker-mid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.worker-mid .timer {
+  font-size: 18px;      /* 目立たせる */
+  font-weight: bold;
+}
+
+/* 右：調整 + 削除 */
+.worker-right {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.worker-adjust-inline {
+  display: flex;
+  gap: 6px;
+}
+
+.worker-adjust-inline button {
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid #999;
+  border-radius: 4px;
+  background: #eee;
+  cursor: pointer;
+}
+
+.worker-adjust-inline button:hover {
+  background: #e1e1e1;
+}
+
+/* 完了時の背景色（既存と統合） */
+.done-worker {
+  background: #4a2a6b !important;
+  color: #fff;
+}
+
+.done-worker .worker-adjust-inline button,
+.done-worker button {
+  background: #FFF2;
+  border-color: #fff8;
+  color: #fff;
+}
+
+.done-worker .worker-adjust-inline button:hover {
+  background: #ffffff33;
+}
+
+/* pill（完了予定） */
+.pill {
+  background: #ddd;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  display: inline-block;
+  width: fit-content;
+}
