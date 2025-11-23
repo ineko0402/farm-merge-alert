@@ -170,33 +170,29 @@ function calcSupplyAlert(cur) {
 
 function renderSupply() {
   if (!state.supply) return;
-  const remain = state.supply.targetAt - Date.now();
+  const remain = state.supply.alertAt - Date.now();
   $('#supplyRemain').textContent = fmt(remain);
-  $('#supplyTarget').textContent = '満杯時刻: ' + fmtDT(state.supply.targetAt);
-  $('#supplyAlert').textContent = state.supply.alertAt ? '36個超過: ' + fmtDT(state.supply.alertAt) : '—';
-
-  if (remain <= 0) {
-    document.querySelector('.supply').classList.add('done-supply');
-  } else {
-    document.querySelector('.supply').classList.remove('done-supply');
-  }
+  $('#supplyTarget').textContent = '36個到達: ' + fmtDT(state.supply.alertAt);
+  $('#supplyAlert').textContent = '';  // 不要になるので空に
 }
+
 function tickSupply() {
   if (!state.supply) return;
   const now = Date.now();
+  const remain = state.supply.alertAt - now;
 
-  if (!state.supply.alertFired && state.supply.alertAt && now >= state.supply.alertAt) {
-    notifyAll('物資が36個を超えました', '物資を回収してください。');
-    state.supply.alertFired = true;
+  if (remain <= 0 && !state.supply.fired) {
+    notifyAll('物資が36個を超えました！', '回収してね！');
+    state.supply.fired = true;
     save(state);
-  }
-  if (!state.supply.targetFired && now >= state.supply.targetAt) {
-    notifyAll('物資が満杯になりました', '取りこぼさないようにしてください。');
-    state.supply.targetFired = true;
-    document.querySelector('.supply').classList.add('done-supply');
+    // タイマー停止（もう更新しない）
+    state.supply = null;
     save(state);
+    $('#supplyActiveUI').classList.add('hidden');
+    $('#supplyInputUI').classList.remove('hidden');
+  } else {
+    renderSupply();
   }
-  renderSupply();
 }
 
 // 開始
@@ -206,12 +202,15 @@ $('#startSupply').addEventListener('click', () => {
     alert('0〜40の範囲で入力してください');
     return;
   }
-  const targetAt = calcSupplyTarget(cur);
-  const alertAt = calcSupplyAlert(cur);
+
+  // 36個になるまでの時間を計算（5分で5個回復）
+  const need = 36 - cur;
+  const alertAt = Date.now() + (need / 5) * 5 * 60 * 1000;  // 5分×need回
+
   state.supply = {
-    cur, targetAt, alertAt,
-    targetFired: targetAt <= Date.now(),
-    alertFired: !alertAt || alertAt <= Date.now()
+    cur,
+    alertAt,           // 36個になる時刻
+    fired: false        // 通知済みフラグ
   };
   save(state);
 
