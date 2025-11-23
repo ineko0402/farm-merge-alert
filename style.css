@@ -13,35 +13,47 @@
   --shadow-hover: 0 12px 24px rgba(0,0,0,0.6);
 }
 
+* { box-sizing: border-box; }
+
 body {
   background: var(--bg);
   color: var(--fg);
   font-family: system-ui, -apple-system, sans-serif;
   margin: 0;
   padding: 0;
+  line-height: 1.5;
 }
 
 header {
   background: #333;
-  padding: 0.5rem 1rem;
+  padding: 0.8rem 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   transition: background 0.3s;
+  position: relative;
+  z-index: 10;
 }
 
 header.event-active {
   background: #5b21b6;
+  color: #fff;
 }
 
-h1 { margin: 0; font-size: 1.3rem; }
-h2 { margin: 0 0 0.8rem; font-size: 1.1rem; }
+h1 { margin: 0; font-size: 1.4rem; font-weight: 700; }
+h2 { margin: 0 0 0.8rem; font-size: 1.15rem; font-weight: 700; }
+
+.energy h2 { color: var(--warn); }
+.supply h2 { color: var(--accent); }
+.workers h2 { color: var(--worker); }
 
 main {
   padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .two-col {
@@ -50,11 +62,11 @@ main {
   gap: 1rem;
 }
 
-/* ===== 共通カード（マテリアル風）===== */
+/* ===== カード共通 ===== */
 .card {
   background: var(--card-bg);
   border-radius: 16px;
-  padding: 1.2rem;
+  padding: 1.3rem;
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
   transition: all 0.3s ease;
@@ -66,57 +78,136 @@ main {
   background: var(--card-bg-hover);
 }
 
-/* 色分け強化 */
-.energy h2 { color: var(--warn); }
-.supply h2 { color: var(--accent); }
-.workers h2 { color: var(--worker); }
+.card.done-energy { background: #665c1e; }
+.card.done-supply { background: #1e5c2a; }
 
-.timer { font-size: 2.2rem; font-weight: bold; margin: 0.5rem 0; }
+/* ===== タイマー・pill ===== */
+.timer {
+  font-size: 2.3rem;
+  font-weight: bold;
+  margin: 0.5rem 0;
+  letter-spacing: 1px;
+}
 .energy .timer { color: var(--warn); }
 .supply .timer { color: var(--accent); }
+.worker-mid .timer { color: var(--worker); font-size: 1.6rem; }
 
 .pill {
   display: inline-block;
-  padding: 0.25rem 0.8rem;
+  padding: 0.3rem 0.9rem;
   background: #333;
   border-radius: 999px;
   font-size: 0.85rem;
   color: #ddd;
 }
 
-/* 完了時のカード背景 */
-.card.done-energy { background: #665c1e; }
-.card.done-supply { background: #1e5c2a; }
+/* ===== 統一チップボタン（プリセット・開始ボタン）===== */
+.preset-bar, .input-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin: 16px 0;
+}
 
-/* ===== ボタン ===== */
-button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 8px;
-  background: #444;
-  color: var(--fg);
-  cursor: pointer;
+.preset-bar button, .input-bar button {
+  background: #333;
+  color: #ddd;
+  border: 1px solid #555;
+  border-radius: 30px;
+  padding: 11px 22px;
+  font-size: 1rem;
   font-weight: 600;
-  transition: all 0.2s;
+  min-width: 88px;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
 }
 
-button:hover {
-  background: #555;
-  transform: translateY(-1px);
+.preset-bar button:hover, .input-bar button:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.5);
 }
 
-/* リソース別ホバーカラー */
-.energy button:hover { background: var(--warn); color: #000; }
-.supply button:hover { background: var(--accent); color: #000; }
-.workers button:hover { background: var(--worker); color: #000; }
+.energy .input-bar button:hover   { background: var(--warn);   color: #000; border-color: var(--warn);   box-shadow: 0 12px 30px rgba(251,192,45,0.5); }
+.supply .input-bar button:hover   { background: var(--accent); color: #000; border-color: var(--accent); box-shadow: 0 12px 30px rgba(76,175,80,0.5); }
+#workerPresetButtons button:hover { background: var(--worker); color: #000; border-color: var(--worker); box-shadow: 0 12px 30px rgba(199,146,234,0.5); }
 
-/* ===== 労働者カード完全刷新 ===== */
+/* ===== 操作ボタン（停止・リセット・労働者ボタン）===== */
+.card .buttons button,
+.worker-right .control-btn {
+  background: #444;
+  color: #ddd;
+  border: 1px solid #555;
+  border-radius: 30px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 64px;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.card .buttons button:hover,
+.worker-right .control-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+.energy .buttons button:hover { background: var(--warn); color: #000; }
+.supply .buttons button:hover { background: var(--accent); color: #000; }
+.plus-btn:hover, .minus-btn:hover { background: var(--worker); color: #000; }
+
+.delete-btn { background: #5d1f1f !important; border-color: #8b2d2d !important; }
+.delete-btn:hover { background: #d32f2f !important; color: #fff !important; box-shadow: 0 10px 25px rgba(211,47,47,0.6) !important; }
+
+/* 完了時ボタン */
+.done-worker .control-btn {
+  background: rgba(255,255,255,0.2) !important;
+  border-color: rgba(255,255,255,0.3) !important;
+  color: #fff !important;
+}
+.done-worker .control-btn:hover { background: rgba(255,255,255,0.35) !important; }
+
+/* ===== ヘッダーボタン ===== */
+.notif-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+#enableNotif, #halfEventButton {
+  background: #333;
+  color: #ddd;
+  border: 1px solid #555;
+  border-radius: 30px;
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+}
+
+#enableNotif:hover { background: #4fc3f7; color: #000; box-shadow: 0 12px 30px rgba(79,195,247,0.5); }
+#halfEventButton:hover { background: var(--event); color: #fff; }
+#halfEventButton.active {
+  background: var(--event) !important;
+  color: #fff !important;
+  box-shadow: 0 0 20px rgba(156,100,255,0.8) !important;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 20px rgba(156,100,255,0.8); }
+  50% { box-shadow: 0 0 30px rgba(156,100,255,1); }
+}
+
+/* ===== 労働者カード ===== */
 .worker-item {
   background: linear-gradient(135deg, #2a2a2a 0%, #222 100%);
   border: 1px solid #555;
   border-radius: 14px;
-  padding: 12px 16px;
-  margin-bottom: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
@@ -125,97 +216,46 @@ button:hover {
   box-shadow: var(--shadow);
 }
 
-.worker-item:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-hover);
-  background: linear-gradient(135deg, #333 0%, #2a2a2a 100%);
-}
+.worker-item:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+.worker-left { font-weight: bold; color: #fff; min-width: 80px; }
+.worker-right { display: flex; gap: 10px; flex-wrap: wrap; }
 
-.worker-left {
-  font-weight: bold;
-  color: #fff;
-  min-width: 80px;
-}
-
-.worker-mid .timer {
-  font-size: 1.6rem;
-  color: var(--worker);
-}
-
-.worker-mid .pill {
-  font-size: 0.8rem;
-  margin-top: 4px;
-}
-
-.worker-right {
-  display: flex;
-  gap: 8px;
-}
-
-.worker-right button {
-  padding: 6px 10px;
-  font-size: 0.9rem;
-  min-width: 40px;
-}
-
-/* 労働者完了時 */
 .worker-item.done-worker {
   background: linear-gradient(135deg, #4a2a6b, #5b2a8b) !important;
   color: #fff;
 }
 
-.worker-item.done-worker .timer {
-  color: #fff;
-}
-
-.worker-item.done-worker button {
-  background: rgba(255,255,255,0.2);
-  border: 1px solid rgba(255,255,255,0.3);
-}
-
-.worker-item.done-worker button:hover {
-  background: rgba(255,255,255,0.35);
-}
-
-/* 削除アニメーション */
 .worker-item.removing {
   opacity: 0;
   transform: scale(0.95);
   transition: all 0.4s ease;
 }
 
-/* プリセットボタン */
-.preset-bar button {
-  font-size: 0.85rem;
-  padding: 0.4rem 0.8rem;
-}
-
-/* イベントボタン */
-.event-btn.active {
-  background: var(--event);
-  color: #fff;
-}
-
-/* その他微調整 */
+/* ===== 入力フォーム ===== */
 input[type=number] {
-  width: 6rem;
-  padding: 0.5rem;
+  width: 6.5rem;
+  padding: 0.6rem;
   background: #333;
   border: 1px solid #555;
-  border-radius: 8px;
+  border-radius: 12px;
   color: var(--fg);
+  font-size: 1rem;
+  text-align: center;
+}
+
+/* ===== スマホ最適化 ===== */
+@media (max-width: 599px) {
+  .two-col { grid-template-columns: 1fr; }
+  main { padding: 0.8rem; }
+  .workers { order: -1; }
+  header { flex-direction: column; gap: 12px; text-align: center; padding: 1rem; }
+  .input-bar { flex-direction: column; align-items: stretch; }
+  .input-bar input { margin-bottom: 8px; }
+  .timer { font-size: 2rem; }
+  .worker-mid .timer { font-size: 1.5rem; }
+  .worker-right { flex-direction: column; }
+  .worker-right button { width: 100%; }
 }
 
 .hidden { display: none !important; }
-
-/* スマホ対応（599px以下） */
-@media (max-width: 599px) {
-  .two-col {
-    grid-template-columns: 1fr;   /* エネルギー・物資を縦並び */
-  }
-  main {
-    display: flex;
-    flex-direction: column;
-  }
-  .workers { order: -1; }        /* 労働者を一番上に移動 */
-}
+.muted { color: var(--muted); font-size: 0.9rem; margin-top: 0.4rem; }

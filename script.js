@@ -1,7 +1,5 @@
 /* ===== ユーティリティ ===== */
-function $(sel) {
-  return document.querySelector(sel);
-}
+function $(sel) { return document.querySelector(sel); }
 function fmt(ms) {
   if (ms < 0) ms = 0;
   const h = Math.floor(ms / 3600000);
@@ -17,29 +15,18 @@ function fmtDT(ts) {
 /* ===== 通知 ===== */
 let blinkTimer;
 function notifyAll(title, body) {
-  if (Notification.permission === 'granted') {
-    new Notification(title, { body });
-  }
-
-  // === サウンド改良 ===
+  if (Notification.permission === 'granted') new Notification(title, { body });
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const o = ctx.createOscillator();
     const g = ctx.createGain();
-    o.type = 'sine';
-    o.frequency.value = 880; // ピッという高めの音
+    o.type = 'sine'; o.frequency.value = 880;
     g.gain.setValueAtTime(0.1, ctx.currentTime);
-    o.connect(g);
-    g.connect(ctx.destination);
-    o.start();
-    o.stop(ctx.currentTime + 0.3); // 0.2秒で止める
-  } catch (err) {
-    console.warn('音声再生エラー', err);
-  }
-
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime + 0.3);
+  } catch (err) { console.warn('音声再生エラー', err); }
   startBlink();
 }
-
 function startBlink() {
   stopBlink();
   let flag = false;
@@ -53,12 +40,9 @@ function stopBlink() {
   document.title = 'アラーム管理';
 }
 
-/* ===== 期間限定イベント ===== */
+/* ===== イベント ===== */
 let isHalfEvent = false;
-
-const eventBtn = $('#halfEventButton');
-
-eventBtn.addEventListener('click', () => {
+$('#halfEventButton').addEventListener('click', () => {
   isHalfEvent = !isHalfEvent;
   localStorage.setItem('halfEvent', JSON.stringify(isHalfEvent));
   updateEventUI();
@@ -66,72 +50,42 @@ eventBtn.addEventListener('click', () => {
 
 function updateEventUI() {
   const header = document.querySelector('header');
-  if (isHalfEvent) {
-    header.classList.add('event-active');
-    eventBtn.classList.add('active');
-    eventBtn.textContent = 'イベント中（短縮有効）';
-  } else {
-    header.classList.remove('event-active');
-    eventBtn.classList.remove('active');
-    eventBtn.textContent = 'イベントOFF';
-  }
-
-  // ←ここを追加
+  header.classList.toggle('event-active', isHalfEvent);
+  $('#halfEventButton').classList.toggle('active', isHalfEvent);
+  $('#halfEventButton').textContent = isHalfEvent ? 'イベント中（短縮有効）' : 'イベントOFF';
   updateWorkerPresetLabels();
 }
 
 function updateWorkerPresetLabels() {
-  const buttons = document.querySelectorAll('#workerPresetButtons button[data-min]');
-  buttons.forEach(btn => {
+  document.querySelectorAll('#workerPresetButtons button[data-min]').forEach(btn => {
     const min = parseFloat(btn.dataset.min);
-    const labelEl = btn.querySelector('.label') || btn;
-
-    // 半減処理
-    const effectiveMin = isHalfEvent ? min / 2 : min;
-
-    // 秒単位で正確に（丸め誤差対策）
-    const totalSec = Math.round(effectiveMin * 60);
-
-    const hours = Math.floor(totalSec / 3600);
-    const minutes = Math.floor((totalSec % 3600) / 60);
-    const seconds = totalSec % 60;
-
-    // フォーマット
-    let label = '';
-    if (hours > 0) label += `${hours}時間`;
-    if (minutes > 0) label += `${minutes}分`;
-    if (seconds > 0) label += `${seconds}秒`;
-
-    labelEl.textContent = label || '0秒';
+    const effective = isHalfEvent ? min / 2 : min;
+    const sec = Math.round(effective * 60);
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    let text = '';
+    if (h) text += `${h}時間`;
+    if (m) text += `${m}分`;
+    if (s) text += `${s}秒`;
+    btn.querySelector('.label')?.remove();
+    const span = document.createElement('span');
+    span.className = 'label';
+    span.textContent = text || '0秒';
+    btn.appendChild(span);
   });
 }
 
-
-// 起動時復元
-document.addEventListener('DOMContentLoaded', () => {
-  const savedHalfEvent = localStorage.getItem('halfEvent');
-  if (savedHalfEvent !== null) {
-    isHalfEvent = JSON.parse(savedHalfEvent);
-  }
-  updateEventUI();
-});
-
-
 /* ===== 状態管理 ===== */
-let state = {
-  energy: null,
-  supply: null,
-  workers: []
-};
-function save(st) {
-  localStorage.setItem('alarmState', JSON.stringify(st));
-}
+let state = { energy: null, supply: null, workers: [] };
+function save() { localStorage.setItem('alarmState', JSON.stringify(state)); }
 function load() {
   const s = localStorage.getItem('alarmState');
   if (s) state = JSON.parse(s);
 }
 load();
 
+/* ===== エネルギー・物資（変更なし・省略）===== */
 /* ===== エネルギー ===== */
 const MAX_ENERGY = 50;
 const ENERGY_INTERVAL_MS_NORMAL = 5 * 60 * 1000;  // 通常
@@ -283,206 +237,119 @@ $('#resetSupply').addEventListener('click', () => {
   renderSupply();
 });
 
-/* ===== 労働者 ===== */
-
-// 共通の削除アニメーション関数
-function removeWorkerWithAnimation(wrap, workerId) {
-  wrap.classList.add('removing');
-  // stopBlinkを追加：削除と同時に点滅停止
+/* ===== 労働者（CSS完全対応版）===== */
+function removeWorkerWithAnimation(el, id) {
+  el.classList.add('removing');
   stopBlink();
   setTimeout(() => {
-    state.workers = state.workers.filter(x => x.id !== workerId);
-    save(state);
-    if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+    state.workers = state.workers.filter(w => w.id !== id);
+    save();
+    el.remove();
   }, 400);
 }
 
 function addWorkerItem(w) {
-  const wrap = document.createElement('div');
-  wrap.className = 'item worker-card'; // 必要なら専用スタイル用
+  const item = document.createElement('div');
+  item.className = 'worker-item';
 
-  // --- 左（ラベル） ---
   const left = document.createElement('div');
   left.className = 'worker-left';
-  left.innerHTML = `<strong>労働者 ${w.label || (w.minutes + '分')}</strong>`;
+  left.textContent = w.label || `${w.minutes}分作業`;
 
-  // --- 中央（時間情報） ---
   const mid = document.createElement('div');
   mid.className = 'worker-mid';
-
-  const remain = document.createElement('div');
-  remain.className = 'timer';
-  remain.textContent = fmt(w.targetAt - Date.now());
-
+  const timer = document.createElement('div');
+  timer.className = 'timer';
+  timer.textContent = fmt(w.targetAt - Date.now());
   const pill = document.createElement('div');
   pill.className = 'pill';
   pill.textContent = '完了: ' + fmtDT(w.targetAt);
+  mid.append(timer, pill);
 
-  mid.appendChild(remain);
-  mid.appendChild(pill);
-
-  // --- 右カラム（操作系）---
   const right = document.createElement('div');
   right.className = 'worker-right';
 
-  const adjustDiv = document.createElement('div');
-  adjustDiv.className = 'worker-adjust-inline';
-  const btnPlus = document.createElement('button');
-  btnPlus.textContent = '+1';
-  const btnMinus = document.createElement('button');
-  btnMinus.textContent = '-1';
+  const plus = document.createElement('button');
+  plus.className = 'control-btn plus-btn';
+  plus.textContent = '+1分';
+  const minus = document.createElement('button');
+  minus.className = 'control-btn minus-btn';
+  minus.textContent = '-1分';
+  const del = document.createElement('button');
+  del.className = 'control-btn delete-btn';
+  del.textContent = '削除';
 
-  adjustDiv.appendChild(btnPlus);
-  adjustDiv.appendChild(btnMinus);
+  right.append(plus, minus, del);
+  item.append(left, mid, right);
+  $('#workerList').appendChild(item);
 
-  const btnDone = document.createElement('button');
-  btnDone.textContent = '削除';
+  plus.onclick = () => { w.targetAt += 60000; pill.textContent = '完了: ' + fmtDT(w.targetAt); save(); tickWorkers(); };
+  minus.onclick = () => { w.targetAt = Math.max(Date.now() + 1000, w.targetAt - 60000); pill.textContent = '完了: ' + fmtDT(w.targetAt); save(); tickWorkers(); };
+  del.onclick = () => removeWorkerWithAnimation(item, w.id);
 
-  right.appendChild(adjustDiv);
-  right.appendChild(btnDone);
-
-  wrap.appendChild(left);
-  wrap.appendChild(mid);
-  wrap.appendChild(right);
-
-  // --- イベント登録 ---
-  btnPlus.addEventListener('click', () => {
-    w.targetAt += 60 * 1000;
-    pill.textContent = '完了: ' + fmtDT(w.targetAt);
-    save(state);
-    tickWorkers();
-  });
-
-  btnMinus.addEventListener('click', () => {
-    const newTarget = w.targetAt - 60 * 1000;
-    w.targetAt = Math.max(Date.now() + 1000, newTarget);
-    pill.textContent = '完了: ' + fmtDT(w.targetAt);
-    save(state);
-    tickWorkers();
-  });
-
-  btnDone.addEventListener('click', () => {
-    removeWorkerWithAnimation(wrap, w.id);
-  });
-
-  // --- 状態反映 ---
-  $('#workerList').appendChild(wrap);
-  w._elRemain = remain;
-  w._elWrap = wrap;
+  w._elTimer = timer;
   w._elPill = pill;
+  w._elItem = item;
 
-  if (w.fired) {
-    wrap.classList.add('done-worker');
-  }
-
-  return wrap;
+  if (w.fired) item.classList.add('done-worker');
 }
-
-
 
 function tickWorkers() {
-  for (const w of state.workers) {
-    const r = w.targetAt - Date.now();
-    if (w._elRemain) w._elRemain.textContent = fmt(r);
-    if (r <= 0 && !w.fired) {
+  state.workers.forEach(w => {
+    const remain = w.targetAt - Date.now();
+    if (w._elTimer) w._elTimer.textContent = fmt(remain);
+    if (remain <= 0 && !w.fired) {
       notifyAll('労働者が準備OK', '次の作業が可能です。');
       w.fired = true;
-      if (w._elWrap) w._elWrap.classList.add('done-worker');
-      save(state);
+      w._elItem.classList.add('done-worker');
+      save();
     }
-  }
+  });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  $('#workerPresetButtons').addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-min]');
-    if (!btn) return;
+/* ===== プリセットクリック ===== */
+$('#workerPresetButtons').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-min]');
+  if (!btn) return;
 
-    // 完了済みをアニメーションで削除
-    for (const w of [...state.workers]) {
-      if (w.fired && w._elWrap) {
-        removeWorkerWithAnimation(w._elWrap, w.id);
-      }
-    }
+  state.workers.filter(w => w.fired).forEach(w => w._elItem && removeWorkerWithAnimation(w._elItem, w.id));
 
-    const min = parseFloat(btn.dataset.min);
-    const label = btn.dataset.label || (min + '分');
-    const now = Date.now();
-    const FIXED_REDUCTION_MS = 30 * 1000;
+  const min = parseFloat(btn.dataset.min);
+  const label = btn.querySelector('.label')?.textContent || `${min}分`;
+  const duration = min * 60 * 1000 * (isHalfEvent ? 0.5 : 1);
 
-    // ✅ isHalfEvent はグローバル変数を使う
-    const durationMs = (min * 60 * 1000) * (isHalfEvent ? 0.5 : 1);
+  const worker = {
+    id: 'w_' + Date.now() + Math.random().toString(36).slice(2),
+    targetAt: Date.now() + duration - 30000,
+    fired: false,
+    minutes: min,
+    label
+  };
 
-    const w = {
-      id: 'w_' + now + '_' + Math.random().toString(36).slice(2),
-      targetAt: now + durationMs - FIXED_REDUCTION_MS,
-      fired: false,
-      minutes: min,
-      label: label
-    };
-
-    state.workers.push(w);
-    save(state);
-    addWorkerItem(w);
-    stopBlink();
-  });
+  state.workers.push(worker);
+  save();
+  addWorkerItem(worker);
+  stopBlink();
 });
 
-/* ===== 復元 ===== */
-function restoreEnergyUI() {
-  if (state.energy) {
-    $('#energyInputUI').classList.add('hidden');
-    $('#energyActiveUI').classList.remove('hidden');
-    renderEnergy();
-  }
-}
-function restoreSupplyUI() {
-  if (state.supply) {
-    $('#supplyInputUI').classList.add('hidden');
-    $('#supplyActiveUI').classList.remove('hidden');
-    renderSupply();
-  }
-}
-function restoreWorkers() {
-  $('#workerList').innerHTML = '';
-  for (const w of state.workers) addWorkerItem(w);
-}
-
-/* ===== 起動時処理 ===== */
+/* ===== 起動時復元 ===== */
 document.addEventListener('DOMContentLoaded', () => {
+  // 状態復元
+  if (state.energy) { $('#energyInputUI').classList.add('hidden'); $('#energyActiveUI').classList.remove('hidden'); }
+  if (state.supply) { $('#supplyInputUI').classList.add('hidden'); $('#supplyActiveUI').classList.remove('hidden'); }
+  state.workers.forEach(addWorkerItem);
 
-  // 各セクションの復元
-  restoreEnergyUI();
-  restoreSupplyUI();
-  restoreWorkers();
-
-  // イベント状態の復元
-  const savedHalfEvent = localStorage.getItem('halfEvent');
-  if (savedHalfEvent !== null) {
-    isHalfEvent = JSON.parse(savedHalfEvent);
-  }
+  // イベント復元
+  const saved = localStorage.getItem('halfEvent');
+  if (saved !== null) isHalfEvent = JSON.parse(saved);
   updateEventUI();
 
-  // タイマー更新ループ
-  setInterval(() => {
-    tickEnergy();
-    tickSupply();
-    tickWorkers();
-  }, 1000);
+  // タイマー
+  setInterval(() => { tickEnergy(); tickSupply(); tickWorkers(); }, 1000);
 
-  // タブ再表示時のリフレッシュ
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      stopBlink();
-      tickEnergy();
-      tickSupply();
-      tickWorkers();
-    }
+    if (!document.hidden) { stopBlink(); tickEnergy(); tickSupply(); tickWorkers(); }
   });
 
-  // 通知とサウンドの有効化
-  $('#enableNotif').addEventListener('click', () => {
-    Notification.requestPermission();
-  });
-
+  $('#enableNotif').onclick = () => Notification.requestPermission();
 });

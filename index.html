@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8" />
   <title>アラーム管理</title>
@@ -17,40 +18,41 @@
     }
   </script>
   <script>
-  (function() {
-    // 開発モード判定
-    // あなたの開発用URLに合わせてここを編集
-    const isDev = location.hostname.includes('github.io') || location.hostname === 'localhost' || location.protocol === 'file:';
+    (function () {
+      // 開発モード判定
+      // あなたの開発用URLに合わせてここを編集
+      const isDev = location.hostname.includes('github.io') || location.hostname === 'localhost' || location.protocol === 'file:';
 
-    if (isDev) {
-      // キャッシュ無効化（CSS・JS・manifest）
-      const version = '?v=' + Date.now();
-      const links = document.querySelectorAll('link[rel="stylesheet"], link[rel="manifest"]');
-      const scripts = document.querySelectorAll('script[src]');
-      [...links, ...scripts].forEach(el => {
-        if (el.href) el.href += version;
-        if (el.src) el.src += version;
-      });
-      console.log('💡 開発モード: キャッシュ無効化中 (' + location.hostname + ')');
+      if (isDev) {
+        // キャッシュ無効化（CSS・JS・manifest）
+        const version = '?v=' + Date.now();
+        const links = document.querySelectorAll('link[rel="stylesheet"], link[rel="manifest"]');
+        const scripts = document.querySelectorAll('script[src]');
+        [...links, ...scripts].forEach(el => {
+          if (el.href) el.href += version;
+          if (el.src) el.src += version;
+        });
+        console.log('💡 開発モード: キャッシュ無効化中 (' + location.hostname + ')');
 
-      // Service WorkerとCache削除
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(r => r.forEach(x => x.unregister()));
-        caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-        console.log('⚠️ Service Worker / Cache 削除済み');
+        // Service WorkerとCache削除
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(r => r.forEach(x => x.unregister()));
+          caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+          console.log('⚠️ Service Worker / Cache 削除済み');
+        }
       }
-    }
-  })();
-</script>
+    })();
+  </script>
 
 </head>
+
 <body>
   <header>
-  <h1>アラーム管理</h1>
-  <div class="notif-controls">
-    <button id="enableNotif">通知とサウンドを有効化</button>
-    <button id="halfEventButton" class="event-btn">作業・回復時間短縮イベント中</button>
-  </div>
+    <h1>アラーム管理</h1>
+    <div class="notif-controls">
+      <button id="enableNotif">通知とサウンドを有効化</button>
+      <button id="halfEventButton" class="event-btn">作業・回復時間短縮イベント中</button>
+    </div>
   </header>
 
 
@@ -59,13 +61,13 @@
       <!-- エネルギー回復アラーム -->
       <section class="card energy">
         <h2>エネルギー回復</h2>
-
         <!-- 初期/停止中UI -->
         <div id="energyInputUI">
-          <label>現在エネルギー（0〜50）</label>
-          <input id="curEnergy" type="number" min="0" max="50" value="0" />
-          <button id="startEnergy">開始</button>
-          <div class="muted" id="energyHint">設定後に残り時間が表示されます。</div>
+          <label>現在エネルギー</label>
+          <div class="input-bar">
+            <input id="curEnergy" type="number" min="0" max="50" value="0" placeholder="0〜50" />
+            <button id="startEnergy">開始する</button>
+          </div>
         </div>
 
         <!-- アラーム中UI -->
@@ -83,13 +85,13 @@
       <!-- 物資アラーム -->
       <section class="card supply">
         <h2>物資</h2>
-
         <!-- 初期/停止中UI -->
         <div id="supplyInputUI">
-          <label>現在物資数（0〜40）</label>
-          <input id="curSupply" type="number" min="0" max="40" value="0" />
-          <button id="startSupply">開始</button>
-          <div class="muted" id="supplyHint">設定後に残り時間が表示されます。</div>
+          <label>現在物資数</label>
+          <div class="input-bar">
+            <input id="curSupply" type="number" min="0" max="40" value="0" placeholder="0〜40" />
+            <button id="startSupply">開始する</button>
+          </div>
         </div>
 
         <!-- アラーム中UI -->
@@ -110,14 +112,14 @@
     <section class="card workers">
       <h2>労働者アラーム</h2>
       <div class="preset-bar" id="workerPresetButtons">
-        <button data-min="3" data-label="3分">3分</button>
-        <button data-min="5" data-label="5分">5分</button>
-        <button data-min="8.33" data-label="8分20秒">8分20秒</button>
-        <button data-min="15" data-label="15分">15分</button>
-        <button data-min="30" data-label="30分">30分</button>
-        <button data-min="50" data-label="50分">50分</button>
-        <button data-min="80" data-label="1時間20分">1時間20分</button>
-        <button data-min="120" data-label="2時間">2時間</button>
+        <button data-min="3"><span class="label">3分</span></button>
+        <button data-min="5"><span class="label">5分</span></button>
+        <button data-min="8.33"><span class="label">8分20秒</span></button>
+        <button data-min="15"><span class="label">15分</span></button>
+        <button data-min="30"><span class="label">30分</span></button>
+        <button data-min="50"><span class="label">50分</span></button>
+        <button data-min="80"><span class="label">1時間20分</span></button>
+        <button data-min="120"><span class="label">2時間</span></button>
       </div>
       <div id="workerList"></div>
     </section>
@@ -125,4 +127,5 @@
 
   <script src="script.js"></script>
 </body>
+
 </html>
