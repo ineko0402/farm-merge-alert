@@ -90,7 +90,7 @@ function stopBlink() {
 /* ===== 状態管理 ===== */
 let state = JSON.parse(localStorage.getItem('alarmState')) || {
   energy: null, // {targetAt: number, duration: number}
-  supply: null, // {targetAt: number, targetCount: number, currentCount: number}
+  supply: null, // {targetAt: number, targetCount: number, currentCount: number, duration: number}
   workers: [], // [{id: string, targetAt: number, fired: boolean, minutes: number, label: string}]
   halfEvent: false
 };
@@ -154,16 +154,38 @@ $('#resetEnergy').addEventListener('click', () => {
 /* ===== 物資アラーム機能 ===== */
 $('#startSupply').addEventListener('click', () => {
   stopBlink();
-  const targetCount = parseInt($('#curSupply').value);
-  if (isNaN(targetCount) || targetCount <= 0 || targetCount > 40) {
-    alert('有効な物資数を入力してください (1〜40)。');
+  const currentSupply = parseInt($('#curSupply').value);
+
+  // 入力値の検証
+  if (isNaN(currentSupply) || currentSupply < 0 || currentSupply >= 40) {
+    alert('有効な物資数を入力してください (0〜39)。');
     return;
   }
 
+  // デフォルトの目標物資数は36個
+  const targetCount = 36;
+
+  // 現在の物資数が目標以上の場合はエラー
+  if (currentSupply >= targetCount) {
+    alert(`現在の物資数(${currentSupply})が目標数(${targetCount})以上です。`);
+    return;
+  }
+
+  // 必要な物資数を計算
+  const supplyNeeded = targetCount - currentSupply;
+
+  // 5分ごとに5個回復する前提で時間を計算
+  // 必要な回復回数 = ceil(必要な物資数 / 5)
+  const recoveryTimes = Math.ceil(supplyNeeded / 5);
+  const duration = recoveryTimes * 5 * 60 * 1000; // ミリ秒に変換
+
+  // 物資は時間短縮イベントの対象外
+
   state.supply = {
-    targetAt: Date.now(), // 開始時刻を記録
+    targetAt: Date.now() + duration,
     targetCount: targetCount,
-    currentCount: 0,
+    currentCount: currentSupply,
+    duration: duration
   };
   save();
 
@@ -176,16 +198,16 @@ $('#stopSupply').addEventListener('click', () => {
   $('#supplyActiveUI').classList.add('hidden');
   $('#supplyInputUI').classList.remove('hidden');
 
-  // 目標物資数をリセット
-  $('#curSupply').value = 36;
+  // 表示をリセット
   $('#supplyTarget').textContent = '36個到達: —';
+  $('#supplyRemain').textContent = '—:—:—';
 
   state.supply = null;
   save();
 });
 
 $('#resetSupply').addEventListener('click', () => {
-  $('#curSupply').value = 36; // リセットでデフォルト値に戻す
+  $('#curSupply').value = 0; // リセットでデフォルト値に戻す
   $('#stopSupply').click();
 });
 
@@ -243,7 +265,7 @@ $workerPresetButtons.addEventListener('click', e => {
 
   const worker = {
     id: 'w_' + Date.now() + Math.random().toString(36).slice(2),
-    targetAt: Date.now() + duration, // targetAtを30秒前にせず、完了時に通知するように修正
+    targetAt: Date.now() + duration,
     fired: false,
     minutes: min,
     label
@@ -329,7 +351,21 @@ function updateUI() {
     }
   }
 
-  // 2. 物資アラーム (省略 - 物資アラームの実装が必要な場合はお申し付けください)
+  // 2. 物資アラーム
+  if (state.supply) {
+    const remain = state.supply.targetAt - now;
+    $('#supplyRemain').textContent = fmt(remain);
+    $('#supplyTarget').textContent = `${state.supply.targetCount}個到達: ` + fmtDT(state.supply.targetAt);
+
+    if (remain <= 0) {
+      $('#supplyRemain').textContent = '完了!';
+      notifyAll('物資完了', `物資が${state.supply.targetCount}個に到達しました!`);
+      $('#supplyActiveUI').classList.add('done-energy'); // 完了時のスタイル適用
+    } else {
+      $('#supplyActiveUI').classList.remove('done-energy');
+      mustStopBlink = false;
+    }
+  }
 
   // 3. 労働者アラーム
   state.workers.forEach(worker => {
@@ -352,7 +388,7 @@ function updateUI() {
   });
 
   // 全てのアラームが完了している場合のみ点滅を停止
-  if (mustStopBlink && state.workers.every(w => w.fired) && !state.energy) {
+  if (mustStopBlink && state.workers.every(w => w.fired) && !state.energy && !state.supply) {
     stopBlink();
   } else if (!mustStopBlink) {
     // タイトル点滅モードでない場合は、完了時に即座に点滅を停止
@@ -372,7 +408,15 @@ document.addEventListener('DOMContentLoaded', () => {
       $('#energyActiveUI').classList.add('done-energy');
     }
   }
-  // 物資アラームは未実装
+
+  // 物資アラームの状態復元
+  if (state.supply) {
+    $('#supplyInputUI').classList.add('hidden');
+    $('#supplyActiveUI').classList.remove('hidden');
+    if (state.supply.targetAt <= Date.now()) {
+      $('#supplyActiveUI').classList.add('done-energy');
+    }
+  }
 
   state.workers.forEach(addWorkerItem);
 
