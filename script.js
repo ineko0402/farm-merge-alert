@@ -116,8 +116,8 @@ $('#startEnergy').addEventListener('click', () => {
   // 満タン(50)までに必要なエネルギー量を計算
   const energyNeeded = 50 - curEnergy;
 
-  // 1エネルギーあたり2分で回復する前提で時間を計算
-  let duration = energyNeeded * 2 * 60 * 1000; // ミリ秒に変換
+  // 1エネルギーあたり3分で回復する前提で時間を計算
+  let duration = energyNeeded * 3 * 60 * 1000; // ミリ秒に変換
 
   // イベントが有効な場合、時間を半減
   duration = duration * (isHalfEvent ? 0.5 : 1);
