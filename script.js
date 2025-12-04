@@ -14,7 +14,7 @@ function fmtDT(ts) {
 
 /* ===== 通知モードの切り替えロジックと関数 ===== */
 let blinkTimer;
-let originalTitle = document.title; 
+let originalTitle = document.title;
 // 通知モードの状態を管理: 'desktop' または 'blink' (デフォルトはblink)
 let notificationMode = localStorage.getItem('notificationMode') || 'blink';
 
@@ -105,13 +105,20 @@ let animationFrameId;
 /* ===== エネルギーアラーム機能 ===== */
 $('#startEnergy').addEventListener('click', () => {
   stopBlink();
-  const durInput = $('#curDuration');
-  let duration = parseInt(durInput.value) * 60 * 1000;
-  if (!duration || duration <= 0) {
-    alert('有効な時間を入力してください。');
+  const curEnergy = parseInt($('#curEnergy').value);
+
+  // 入力値の検証
+  if (isNaN(curEnergy) || curEnergy < 0 || curEnergy >= 50) {
+    alert('有効なエネルギー値を入力してください (0〜49)。');
     return;
   }
-  
+
+  // 満タン(50)までに必要なエネルギー量を計算
+  const energyNeeded = 50 - curEnergy;
+
+  // 1エネルギーあたり2分で回復する前提で時間を計算
+  let duration = energyNeeded * 2 * 60 * 1000; // ミリ秒に変換
+
   // イベントが有効な場合、時間を半減
   duration = duration * (isHalfEvent ? 0.5 : 1);
 
@@ -129,7 +136,7 @@ $('#stopEnergy').addEventListener('click', () => {
   stopBlink();
   $('#energyActiveUI').classList.add('hidden');
   $('#energyInputUI').classList.remove('hidden');
-  
+
   // 目標時刻と残時間をクリア
   $('#energyTarget').textContent = '目標時刻: —';
   $('#energyRemain').textContent = '—:—:—';
@@ -139,7 +146,7 @@ $('#stopEnergy').addEventListener('click', () => {
 });
 
 $('#resetEnergy').addEventListener('click', () => {
-  $('#curDuration').value = 60; // リセットでデフォルト値に戻す
+  $('#curEnergy').value = 0; // リセットでデフォルト値に戻す
   $('#stopEnergy').click();
 });
 
@@ -168,11 +175,11 @@ $('#stopSupply').addEventListener('click', () => {
   stopBlink();
   $('#supplyActiveUI').classList.add('hidden');
   $('#supplyInputUI').classList.remove('hidden');
-  
+
   // 目標物資数をリセット
   $('#curSupply').value = 36;
   $('#supplyTarget').textContent = '36個到達: —';
-  
+
   state.supply = null;
   save();
 });
@@ -192,7 +199,7 @@ function addWorkerItem(worker) {
   el.className = 'worker-item';
   if (worker.fired) el.classList.add('done-worker');
   el.dataset.workerId = worker.id;
-  
+
   const targetText = worker.fired ? '完了' : fmtDT(worker.targetAt);
 
   el.innerHTML = `
@@ -207,7 +214,7 @@ function addWorkerItem(worker) {
       <button class="control-btn delete-btn" data-id="${worker.id}" data-action="delete">削除</button>
     </div>
   `;
-  
+
   worker._elItem = el; // 要素をオブジェクトに保存
   $workerList.appendChild(el);
 }
@@ -251,7 +258,7 @@ $workerPresetButtons.addEventListener('click', e => {
 $workerList.addEventListener('click', e => {
   const btn = e.target.closest('.control-btn');
   if (!btn) return;
-  
+
   const id = btn.dataset.id;
   const action = btn.dataset.action;
   const worker = state.workers.find(w => w.id === id);
@@ -314,7 +321,7 @@ function updateUI() {
 
     if (remain <= 0) {
       $('#energyRemain').textContent = '完了!';
-      notifyAll('エネルギー完了', 'エネルギーが満タンになりました！');
+      notifyAll('エネルギー完了', 'エネルギーが満タンになりました!');
       $('#energyActiveUI').classList.add('done-energy');
     } else {
       $('#energyActiveUI').classList.remove('done-energy');
@@ -328,7 +335,7 @@ function updateUI() {
   state.workers.forEach(worker => {
     const remain = worker.targetAt - now;
     const $timerEl = $(`[data-timer-id="${worker.id}"]`);
-    
+
     if ($timerEl) $timerEl.textContent = fmt(remain);
 
     if (remain <= 0 && !worker.fired) {
@@ -338,7 +345,7 @@ function updateUI() {
       notifyAll('労働者完了', `${worker.label} の労働者が帰還しました。`);
       save();
     }
-    
+
     if (!worker.fired) {
       mustStopBlink = false;
     }
@@ -348,8 +355,8 @@ function updateUI() {
   if (mustStopBlink && state.workers.every(w => w.fired) && !state.energy) {
     stopBlink();
   } else if (!mustStopBlink) {
-     // タイトル点滅モードでない場合は、完了時に即座に点滅を停止
-     if (notificationMode !== 'blink') stopBlink();
+    // タイトル点滅モードでない場合は、完了時に即座に点滅を停止
+    if (notificationMode !== 'blink') stopBlink();
   }
 
   animationFrameId = requestAnimationFrame(updateUI);
@@ -358,15 +365,15 @@ function updateUI() {
 /* ===== 起動時復元とイベントリスナー設定 ===== */
 document.addEventListener('DOMContentLoaded', () => {
   // 状態復元
-  if (state.energy) { 
-    $('#energyInputUI').classList.add('hidden'); 
-    $('#energyActiveUI').classList.remove('hidden'); 
+  if (state.energy) {
+    $('#energyInputUI').classList.add('hidden');
+    $('#energyActiveUI').classList.remove('hidden');
     if (state.energy.targetAt <= Date.now()) {
       $('#energyActiveUI').classList.add('done-energy');
     }
   }
   // 物資アラームは未実装
-  
+
   state.workers.forEach(addWorkerItem);
 
   // イベント復元
@@ -402,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // UI初期化
-  updateNotifButtonUI(); 
+  updateNotifButtonUI();
 
   // メインループ開始
   updateUI();
