@@ -100,7 +100,6 @@ function save() {
 }
 
 let isHalfEvent = state.halfEvent; // イベントの状態を一時的に保持
-let animationFrameId;
 
 /* ===== エネルギーアラーム機能 ===== */
 $('#startEnergy').addEventListener('click', () => {
@@ -405,7 +404,7 @@ function updateUI() {
     if (notificationMode !== 'blink') stopBlink();
   }
 
-  animationFrameId = requestAnimationFrame(updateUI);
+
 }
 
 /* ===== 起動時復元とイベントリスナー設定 ===== */
@@ -465,6 +464,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // UI初期化
   updateNotifButtonUI();
 
-  // メインループ開始
-  updateUI();
+  // メインループ開始 (1秒ごとに更新)
+  setInterval(updateUI, 1000);
 });
