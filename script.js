@@ -89,8 +89,8 @@ function stopBlink() {
 
 /* ===== 状態管理 ===== */
 let state = JSON.parse(localStorage.getItem('alarmState')) || {
-  energy: null, // {targetAt: number, duration: number}
-  supply: null, // {targetAt: number, targetCount: number, currentCount: number, duration: number}
+  energy: null, // {targetAt: number, duration: number, fired: boolean}
+  supply: null, // {targetAt: number, targetCount: number, currentCount: number, duration: number, fired: boolean}
   workers: [], // [{id: string, targetAt: number, fired: boolean, minutes: number, label: string}]
   halfEvent: false
 };
@@ -125,6 +125,7 @@ $('#startEnergy').addEventListener('click', () => {
   state.energy = {
     targetAt: Date.now() + duration,
     duration: duration,
+    fired: false
   };
   save();
 
@@ -185,7 +186,8 @@ $('#startSupply').addEventListener('click', () => {
     targetAt: Date.now() + duration,
     targetCount: targetCount,
     currentCount: currentSupply,
-    duration: duration
+    duration: duration,
+    fired: false
   };
   save();
 
@@ -343,7 +345,11 @@ function updateUI() {
 
     if (remain <= 0) {
       $('#energyRemain').textContent = '完了!';
-      notifyAll('エネルギー完了', 'エネルギーが満タンになりました!');
+      if (!state.energy.fired) {
+        notifyAll('エネルギー完了', 'エネルギーが満タンになりました!');
+        state.energy.fired = true;
+        save();
+      }
       $('#energyActiveUI').classList.add('done-energy');
     } else {
       $('#energyActiveUI').classList.remove('done-energy');
@@ -359,7 +365,11 @@ function updateUI() {
 
     if (remain <= 0) {
       $('#supplyRemain').textContent = '完了!';
-      notifyAll('物資完了', `物資が${state.supply.targetCount}個に到達しました!`);
+      if (!state.supply.fired) {
+        notifyAll('物資完了', `物資が${state.supply.targetCount}個に到達しました!`);
+        state.supply.fired = true;
+        save();
+      }
       $('#supplyActiveUI').classList.add('done-energy'); // 完了時のスタイル適用
     } else {
       $('#supplyActiveUI').classList.remove('done-energy');
