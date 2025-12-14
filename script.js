@@ -15,8 +15,25 @@ function fmtDT(ts) {
 /* ===== 通知モードの切り替えロジックと関数 ===== */
 let blinkTimer;
 let originalTitle = document.title;
-// 通知モードの状態を管理: 'desktop' または 'blink' (デフォルトはblink)
 let notificationMode = localStorage.getItem('notificationMode') || 'blink';
+
+// MIDI Player Setup
+let midiPlayer;
+let midiSequence;
+let isMidiLoaded = false;
+
+// Initialize Player
+if (window.mm) {
+  midiPlayer = new mm.SoundFontPlayer('https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus');
+  // Load MIDI file
+  mm.urlToNoteSequence('midi/aka09.mid')
+    .then(seq => {
+      midiSequence = seq;
+      isMidiLoaded = true;
+      console.log('MIDI Loaded');
+    })
+    .catch(e => console.error('Failed to load MIDI:', e));
+}
 
 const $enableNotif = $('#enableNotif');
 
@@ -28,7 +45,6 @@ function updateNotifButtonUI() {
     $enableNotif.textContent = '通知モード: デスクトップ';
     $enableNotif.style.backgroundColor = '#4fc3f7';
     $enableNotif.style.color = '#000';
-    // デスクトップ通知の権限が拒否されている場合は警告
     if (Notification.permission !== 'granted') {
       $enableNotif.textContent = '通知モード: 権限が必要です';
       $enableNotif.style.backgroundColor = '#d32f2f'; // 赤色
@@ -43,21 +59,18 @@ function updateNotifButtonUI() {
 
 function notifyAll(title, body) {
   // 1. サウンドを鳴らす (両モード共通)
-  try {
-    const player = document.getElementById('alarmPlayer');
-    if (player) {
-      player.start();
-    }
-  } catch (e) {
-    console.error('Failed to play sound:', e);
+  if (isMidiLoaded && midiPlayer && !midiPlayer.isPlaying()) {
+    midiPlayer.start(midiSequence)
+      .then(() => {
+         // Playback finished (optional: loop or stop logic)
+      })
+      .catch(e => console.error('Playback failed:', e));
   }
 
   // 2. モードに応じた通知表示
   if (notificationMode === 'desktop' && Notification.permission === 'granted') {
-    // デスクトップ通知 (履歴に残る)
     new Notification(title, { body });
   } else {
-    // タイトル点滅 (履歴に残らない)
     startBlink(title);
   }
 }
@@ -80,9 +93,8 @@ function stopBlink() {
     blinkTimer = null;
     document.title = originalTitle;
   }
-  const player = document.getElementById('alarmPlayer');
-  if (player) {
-    player.stop();
+  if (midiPlayer && midiPlayer.isPlaying()) {
+    midiPlayer.stop();
   }
 }
 
