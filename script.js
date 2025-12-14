@@ -44,15 +44,10 @@ function updateNotifButtonUI() {
 function notifyAll(title, body) {
   // 1. サウンドを鳴らす (両モード共通)
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = 'sine'; o.frequency.value = 880;
-    g.gain.setValueAtTime(0.3, ctx.currentTime);
-    o.connect(g);
-    g.connect(ctx.destination);
-    o.start();
-    o.stop(ctx.currentTime + 0.3);
+    const player = document.getElementById('alarmPlayer');
+    if (player) {
+      player.start();
+    }
   } catch (e) {
     console.error('Failed to play sound:', e);
   }
@@ -84,6 +79,10 @@ function stopBlink() {
     clearInterval(blinkTimer);
     blinkTimer = null;
     document.title = originalTitle;
+  }
+  const player = document.getElementById('alarmPlayer');
+  if (player) {
+    player.stop();
   }
 }
 

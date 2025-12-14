@@ -9,6 +9,8 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#5b21b6">
   <link rel="icon" href="icon-192.png">
+  <script src="https://cdn.jsdelivr.net/npm/@magenta/music@1.23.1/dist/magentamusic.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html-midi-player@1.5.0/dist/midi-player.min.js"></script>
   <script>
     // Service Worker 登録
     if ('serviceWorker' in navigator) {
@@ -124,6 +126,18 @@
       <div id="workerList"></div>
     </section>
   </main>
+
+  <footer>
+    <div class="credits" style="text-align: center; margin-top: 2rem; padding: 1rem; font-size: 0.8rem; color: #666;">
+      <p style="margin-bottom: 0.5rem;">Alarm Music provided by:</p>
+      <a href="http://www.vagrancy.jp/" target="_blank" rel="noopener noreferrer">
+        <img src="midi/v_banner04.jpg" alt="VAGRANCY" style="max-width: 200px; border: 1px solid #ccc;">
+      </a>
+      <p>copyright (c) akiko shikata</p>
+    </div>
+    <!-- MIDI Player (Hidden) -->
+    <midi-player src="midi/aka09.mid" sound-font id="alarmPlayer" style="display: none;"></midi-player>
+  </footer>
 
   <script src="script.js"></script>
 </body>
