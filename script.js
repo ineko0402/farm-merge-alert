@@ -17,23 +17,9 @@ let blinkTimer;
 let originalTitle = document.title;
 let notificationMode = localStorage.getItem('notificationMode') || 'blink';
 
-// MIDI Player Setup
-let midiPlayer;
-let midiSequence;
-let isMidiLoaded = false;
-
-// Initialize Player
-if (window.mm) {
-  midiPlayer = new mm.SoundFontPlayer('https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus');
-  // Load MIDI file
-  mm.urlToNoteSequence('midi/aka09.mid')
-    .then(seq => {
-      midiSequence = seq;
-      isMidiLoaded = true;
-      console.log('MIDI Loaded');
-    })
-    .catch(e => console.error('Failed to load MIDI:', e));
-}
+// MIDIjs Player Setup
+// Note: MIDIjs is a global object loaded from the script tag.
+// No specialized initialization similar to Magenta is needed here.
 
 const $enableNotif = $('#enableNotif');
 
@@ -59,12 +45,10 @@ function updateNotifButtonUI() {
 
 function notifyAll(title, body) {
   // 1. サウンドを鳴らす (両モード共通)
-  if (isMidiLoaded && midiPlayer && !midiPlayer.isPlaying()) {
-    midiPlayer.start(midiSequence)
-      .then(() => {
-         // Playback finished (optional: loop or stop logic)
-      })
-      .catch(e => console.error('Playback failed:', e));
+  try {
+    MIDIjs.play('midi/aka09.mid');
+  } catch (e) {
+    console.error('Failed to play MIDI:', e);
   }
 
   // 2. モードに応じた通知表示
@@ -93,8 +77,10 @@ function stopBlink() {
     blinkTimer = null;
     document.title = originalTitle;
   }
-  if (midiPlayer && midiPlayer.isPlaying()) {
-    midiPlayer.stop();
+  try {
+    MIDIjs.stop();
+  } catch (e) {
+    console.error('Failed to stop MIDI:', e);
   }
 }
 
