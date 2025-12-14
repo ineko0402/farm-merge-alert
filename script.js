@@ -19,7 +19,7 @@ let notificationMode = localStorage.getItem('notificationMode') || 'blink';
 
 // MIDIjs Player Setup
 // Note: MIDIjs is a global object loaded from the script tag.
-// No specialized initialization similar to Magenta is needed here.
+let midiStopTimer = null;
 
 const $enableNotif = $('#enableNotif');
 
@@ -46,7 +46,25 @@ function updateNotifButtonUI() {
 function notifyAll(title, body) {
   // 1. サウンドを鳴らす (両モード共通)
   try {
+    // 既存の自動停止タイマーがあればクリア
+    if (midiStopTimer) {
+      clearTimeout(midiStopTimer);
+      midiStopTimer = null;
+    }
+
     MIDIjs.play('midi/aka09.mid');
+
+    // 10秒後に停止するタイマーを設定
+    midiStopTimer = setTimeout(() => {
+      try {
+        MIDIjs.stop();
+        console.log('Alarm stopped automatically after 10s');
+      } catch (e) {
+        console.error('Failed to auto-stop MIDI:', e);
+      }
+      midiStopTimer = null;
+    }, 10000); // 10秒
+
   } catch (e) {
     console.error('Failed to play MIDI:', e);
   }
@@ -76,6 +94,12 @@ function stopBlink() {
     clearInterval(blinkTimer);
     blinkTimer = null;
     document.title = originalTitle;
+  }
+
+  // 手動停止時もタイマーをクリアして止める
+  if (midiStopTimer) {
+    clearTimeout(midiStopTimer);
+    midiStopTimer = null;
   }
   try {
     MIDIjs.stop();
