@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>設定 - アラーム管理</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" href="icon-192.png">
+    <script src="//www.midijs.net/lib/midi.js"></script>
+    <style>
+        /* Settings specific styles */
+        .settings-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+
+        .settings-section {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .settings-section h2 {
+            margin-top: 0;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #fff;
+            transition: background 0.2s;
+        }
+
+        .radio-label:hover {
+            background: #f0f0f0;
+        }
+
+        .radio-label input[type="radio"] {
+            margin-right: 1rem;
+        }
+
+        .sound-info {
+            flex: 1;
+        }
+
+        .sound-title {
+            font-weight: bold;
+            display: block;
+        }
+
+        .sound-meta {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .preview-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .preview-btn:hover {
+            background: #d0d0d0;
+        }
+
+        .duration-inputs {
+            margin-left: 2rem;
+            margin-top: 0.5rem;
+        }
+
+        .footer-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        .btn-save {
+            background-color: #5b21b6;
+            color: white;
+            padding: 0.8rem 2rem;
+            font-weight: bold;
+        }
+
+        .btn-cancel {
+            background-color: #ccc;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>設定</h1>
+    </header>
+
+    <main class="settings-container">
+        <form id="settingsForm">
+
+            <!-- Alarm Sound Selection -->
+            <section class="settings-section">
+                <details open>
+                    <summary>
+                        <h2>アラーム音</h2>
+                    </summary>
+                    <div class="option-group">
+
+                        <label class="radio-label">
+                            <input type="radio" name="sound" value="midi/aka09.mid" checked data-type="midi">
+                            <div class="sound-info">
+                                <span class="sound-title">西風の贈り物</span>
+                                <span class="sound-meta">aka09.mid / VAGRANCY</span>
+                            </div>
+                            <button type="button" class="preview-btn" data-src="midi/aka09.mid" data-type="midi">▶
+                                試聴</button>
+                        </label>
+
+                        <label class="radio-label">
+                            <input type="radio" name="sound" value="midi/haikyo.mid" data-type="midi">
+                            <div class="sound-info">
+                                <span class="sound-title">廃墟と楽園</span>
+                                <span class="sound-meta">haikyo.mid / VAGRANCY (限定素材)</span>
+                            </div>
+                            <button type="button" class="preview-btn" data-src="midi/haikyo.mid" data-type="midi">▶
+                                試聴</button>
+                        </label>
+
+                        <label class="radio-label">
+                            <input type="radio" name="sound" value="midi/iuripuca.mid" data-type="midi">
+                            <div class="sound-info">
+                                <span class="sound-title">イゥリプカ</span>
+                                <span class="sound-meta">iuripuca.mid / VAGRANCY (限定素材)</span>
+                            </div>
+                            <button type="button" class="preview-btn" data-src="midi/iuripuca.mid" data-type="midi">▶
+                                試聴</button>
+                        </label>
+
+                        <label class="radio-label">
+                            <input type="radio" name="sound" value="midi/radio.mid" data-type="midi">
+                            <div class="sound-info">
+                                <span class="sound-title">ラヂヲ予報</span>
+                                <span class="sound-meta">radio.mid / VAGRANCY (限定素材)</span>
+                            </div>
+                            <button type="button" class="preview-btn" data-src="midi/radio.mid" data-type="midi">▶
+                                試聴</button>
+                        </label>
+
+                        <label class="radio-label">
+                            <input type="radio" name="sound" value="base64_chime" data-type="base64">
+                            <div class="sound-info">
+                                <span class="sound-title">シンプルチャイム</span>
+                                <span class="sound-meta">MIDIjs Built-in (Base64)</span>
+                            </div>
+                            <button type="button" class="preview-btn" data-src="base64_chime" data-type="base64">▶
+                                試聴</button>
+                        </label>
+
+                        <label class="radio-label">
+                            <input type="radio" name="sound" value="oscillator" data-type="oscillator">
+                            <div class="sound-info">
+                                <span class="sound-title">電子音 (ピピピ)</span>
+                                <span class="sound-meta">Program Generated</span>
+                            </div>
+                            <button type="button" class="preview-btn" data-src="oscillator" data-type="oscillator">▶
+                                試聴</button>
+                        </label>
+
+                    </div>
+                </details>
+            </section>
+
+            <!-- Duration Selection -->
+            <section class="settings-section">
+                <details open>
+                    <summary>
+                        <h2>再生時間</h2>
+                    </summary>
+                    <div class="option-group">
+                        <label class="radio-label">
+                            <input type="radio" name="durationMode" value="full">
+                            <div class="sound-info">
+                                <span class="sound-title">1周（曲の最後まで）</span>
+                            </div>
+                        </label>
+
+                        <label class="radio-label">
+                            <input type="radio" name="durationMode" value="time" checked>
+                            <div class="sound-info">
+                                <span class="sound-title">指定秒数で停止</span>
+                            </div>
+                        </label>
+
+                        <div class="duration-inputs">
+                            <input type="number" id="durationSeconds" min="1" max="300" value="10"
+                                style="padding: 0.5rem; width: 80px;">
+                            <span>秒</span>
+                            <button type="button" id="testDurationBtn"
+                                style="margin-left: 1rem; padding: 0.3rem 0.6rem; cursor: pointer;">🔍 時間指定テスト</button>
+                        </div>
+                    </div>
+                </details>
+            </section>
+
+            <div class="footer-actions">
+                <a href="index.html" class="btn btn-cancel"
+                    style="text-decoration: none; display: inline-block; text-align: center; padding: 0.8rem 2rem;">キャンセル</a>
+                <button type="submit" class="btn btn-save">保存して戻る</button>
+            </div>
+
+        </form>
+    </main>
+
+    <script>
+        // --- Utils & Constants ---
+        const BASE64_CHIME = 'data:audio/midi;base64,TVRoZAAAAAYAAAABAeBNVHJrAAAA5wD/WAQEAhgIAP9RAwehIADAAADAAGWQXH8AwABlgFx/AMAAZZBZfwDAAGWAWX8AwABlkFZ/AMAAZYBWfwDAAGWQQ38AkEF/AJBCfwCQQH8AkD9/AMlPAJlPfwDAAACQU38AwABlgEN/AMAAZYBCfwDAAGWAP38AwABlgFN/AMAAZZBDfwDJTwCZT38AwAAAkFB/AMAAZYBBfwDAAGWJT38AwABliQB/AMAAZcAAZYBAfwDAAGWAUH8AwABlkE1/AMAAZYBDfwDAAGXAAGWATX8AwABlwABlwABlwABlwABlkDh/AP8vAA==';
+        let previewTimer = null;
+        let audioCtx = null; // For Oscillator
+
+        // --- Load Settings ---
+        function loadSettings() {
+            const savedPath = localStorage.getItem('alarmExample_path') || 'midi/aka09.mid';
+            const savedMode = localStorage.getItem('alarmExample_mode') || 'time';
+            const savedSeconds = localStorage.getItem('alarmExample_seconds') || '10';
+
+            console.log('🔹 Loaded Settings:', {
+                path: savedPath,
+                mode: savedMode,
+                seconds: savedSeconds
+            });
+
+            // Select Radio
+            const soundRadio = document.querySelector(`input[name="sound"][value="${savedPath}"]`);
+            if (soundRadio) soundRadio.checked = true;
+
+            const modeRadio = document.querySelector(`input[name="durationMode"][value="${savedMode}"]`);
+            if (modeRadio) modeRadio.checked = true;
+
+            // Set Input
+            document.getElementById('durationSeconds').value = savedSeconds;
+        }
+
+        // --- Preview Logic ---
+        function stopPreview() {
+            if (previewTimer) {
+                clearTimeout(previewTimer);
+                previewTimer = null;
+            }
+            try { MIDIjs.stop(); } catch (e) { }
+            if (audioCtx) {
+                audioCtx.close();
+                audioCtx = null;
+            }
+        }
+
+        function playOscillator() {
+            // Simple Beep-Beep-Beep
+            stopPreview();
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+            const machineGunBeep = (time) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(880, time);
+
+                gain.gain.setValueAtTime(0.1, time);
+                gain.gain.exponentialRampToValueAtTime(0.00001, time + 0.1);
+
+                osc.start(time);
+                osc.stop(time + 0.1);
+            };
+
+            const now = audioCtx.currentTime;
+            machineGunBeep(now);
+            machineGunBeep(now + 0.2);
+            machineGunBeep(now + 0.4);
+
+            // Stop logic for loop preview (just plays once set)
+        }
+
+        // --- Helper to Play Selected Sound ---
+        function playInfoMusic(src, type) {
+            if (type === 'midi') {
+                MIDIjs.play(src);
+            } else if (type === 'base64') {
+                MIDIjs.play(BASE64_CHIME);
+            } else if (type === 'oscillator') {
+                playOscillator();
+            }
+        }
+
+        // --- Event Listeners ---
+        document.querySelectorAll('.preview-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation(); // Avoid triggering label click
+
+                const src = btn.dataset.src;
+                const type = btn.dataset.type;
+                stopPreview();
+
+                console.log(`🎵 Previewing: ${src} (${type})`);
+                playInfoMusic(src, type);
+            });
+        });
+
+        // Test Duration Button
+        document.getElementById('testDurationBtn').addEventListener('click', () => {
+            const sec = parseInt(document.getElementById('durationSeconds').value, 10);
+            if (!sec || sec <= 0) {
+                alert('秒数を正しく入力してください');
+                return;
+            }
+
+            // Get currently selected sound
+            const selectedRadio = document.querySelector('input[name="sound"]:checked');
+            if (!selectedRadio) {
+                alert('サウンドが選択されていません');
+                return;
+            }
+
+            const src = selectedRadio.value;
+            const type = selectedRadio.dataset.type;
+
+            stopPreview();
+            console.log(`⏱ Testing Duration: ${sec}s -> ${src} (${type})`);
+
+            playInfoMusic(src, type);
+
+            // Force stop after N seconds
+            previewTimer = setTimeout(() => {
+                stopPreview();
+                console.log('⏱ Test Duration Ended');
+                alert('時間指定テスト終了'); // Visual feedback
+            }, sec * 1000);
+        });
+
+        document.getElementById('settingsForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const sound = formData.get('sound');
+            const durationMode = formData.get('durationMode');
+            const seconds = formData.get('durationMode') === 'time' ?
+                document.getElementById('durationSeconds').value : null;
+
+            localStorage.setItem('alarmExample_path', sound);
+            localStorage.setItem('alarmExample_mode', durationMode);
+            if (seconds) {
+                localStorage.setItem('alarmExample_seconds', seconds);
+            }
+
+            console.log('💾 Settings Saved:', {
+                sound,
+                durationMode,
+                seconds
+            });
+
+            // Stop any preview sound
+            stopPreview();
+
+            // Go back
+            window.location.href = 'index.html';
+        });
+
+        // Initial Load
+        loadSettings();
+
+    </script>
+</body>
+
+</html>
