@@ -20,9 +20,7 @@
   </script>
   <script>
     (function () {
-      // 開発モード判定
-      // あなたの開発用URLに合わせてここを編集
-      const isDev = location.hostname === '127.0.0.1' || location.hostname === 'localhost' || location.protocol === 'file:';
+      const isDev = location.hostname === '127.0.0.1';
 
       if (isDev) {
         // キャッシュ無効化（CSS・JS・manifest）
