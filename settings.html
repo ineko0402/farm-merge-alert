@@ -9,28 +9,7 @@
     <link rel="icon" href="icon-192.png">
     <script src="//www.midijs.net/lib/midi.js"></script>
     <style>
-        /* Settings specific styles */
-        .settings-container {
-            max-width: 600px;
-            margin: 2rem auto;
-            padding: 1rem;
-        }
-
-        .settings-section {
-            background: #fafafa;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .settings-section h2 {
-            margin-top: 0;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
+        /* Additional Settings specific tweaks if needed */
         .option-group {
             display: flex;
             flex-direction: column;
@@ -40,16 +19,20 @@
         .radio-label {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             padding: 0.8rem;
-            border: 1px solid #eee;
+            border: 1px solid #444;
+            /* Dark border */
             border-radius: 6px;
             cursor: pointer;
-            background: #fff;
+            background: #2a2a2a;
+            /* Dark card bg */
             transition: background 0.2s;
+            color: #eee;
         }
 
         .radio-label:hover {
-            background: #f0f0f0;
+            background: #333;
         }
 
         .radio-label input[type="radio"] {
@@ -58,6 +41,7 @@
 
         .sound-info {
             flex: 1;
+            /* Space Grotesk for titles if desired */
         }
 
         .sound-title {
@@ -67,62 +51,26 @@
 
         .sound-meta {
             font-size: 0.8rem;
-            color: #666;
-        }
-
-        .preview-btn {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.8rem;
-            background: #e0e0e0;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .preview-btn:hover {
-            background: #d0d0d0;
-        }
-
-        .duration-inputs {
-            margin-left: 2rem;
-            margin-top: 0.5rem;
-        }
-
-        .footer-actions {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 2rem;
-        }
-
-        .btn-save {
-            background-color: #5b21b6;
-            color: white;
-            padding: 0.8rem 2rem;
-            font-weight: bold;
-        }
-
-        .btn-cancel {
-            background-color: #ccc;
-            color: #333;
+            color: #888;
         }
     </style>
 </head>
 
 <body>
     <header>
-        <h1>設定</h1>
+        <h1>アラーム設定</h1>
     </header>
 
-    <main class="settings-container">
+    <main>
         <form id="settingsForm">
 
             <!-- Alarm Sound Selection -->
-            <section class="settings-section">
+            <section class="card energy">
                 <details open>
                     <summary>
                         <h2>アラーム音</h2>
                     </summary>
-                    <div class="option-group">
+                    <div class="option-group" style="padding-top: 1rem;">
 
                         <label class="radio-label">
                             <input type="radio" name="sound" value="midi/aka09.mid" checked data-type="midi">
@@ -130,8 +78,10 @@
                                 <span class="sound-title">西風の贈り物</span>
                                 <span class="sound-meta">aka09.mid / VAGRANCY</span>
                             </div>
-                            <button type="button" class="preview-btn" data-src="midi/aka09.mid" data-type="midi">▶
-                                試聴</button>
+                            <div class="buttons">
+                                <button type="button" class="preview-btn" data-src="midi/aka09.mid" data-type="midi">▶
+                                    試聴</button>
+                            </div>
                         </label>
 
                         <label class="radio-label">
@@ -140,8 +90,10 @@
                                 <span class="sound-title">廃墟と楽園</span>
                                 <span class="sound-meta">haikyo.mid / VAGRANCY (限定素材)</span>
                             </div>
-                            <button type="button" class="preview-btn" data-src="midi/haikyo.mid" data-type="midi">▶
-                                試聴</button>
+                            <div class="buttons">
+                                <button type="button" class="preview-btn" data-src="midi/haikyo.mid" data-type="midi">▶
+                                    試聴</button>
+                            </div>
                         </label>
 
                         <label class="radio-label">
@@ -150,8 +102,11 @@
                                 <span class="sound-title">イゥリプカ</span>
                                 <span class="sound-meta">iuripuca.mid / VAGRANCY (限定素材)</span>
                             </div>
-                            <button type="button" class="preview-btn" data-src="midi/iuripuca.mid" data-type="midi">▶
-                                試聴</button>
+                            <div class="buttons">
+                                <button type="button" class="preview-btn" data-src="midi/iuripuca.mid"
+                                    data-type="midi">▶
+                                    試聴</button>
+                            </div>
                         </label>
 
                         <label class="radio-label">
@@ -160,8 +115,10 @@
                                 <span class="sound-title">ラヂヲ予報</span>
                                 <span class="sound-meta">radio.mid / VAGRANCY (限定素材)</span>
                             </div>
-                            <button type="button" class="preview-btn" data-src="midi/radio.mid" data-type="midi">▶
-                                試聴</button>
+                            <div class="buttons">
+                                <button type="button" class="preview-btn" data-src="midi/radio.mid" data-type="midi">▶
+                                    試聴</button>
+                            </div>
                         </label>
 
                         <label class="radio-label">
@@ -170,8 +127,10 @@
                                 <span class="sound-title">シンプルチャイム</span>
                                 <span class="sound-meta">MIDIjs Built-in (Base64)</span>
                             </div>
-                            <button type="button" class="preview-btn" data-src="base64_chime" data-type="base64">▶
-                                試聴</button>
+                            <div class="buttons">
+                                <button type="button" class="preview-btn" data-src="base64_chime" data-type="base64">▶
+                                    試聴</button>
+                            </div>
                         </label>
 
                         <label class="radio-label">
@@ -180,8 +139,10 @@
                                 <span class="sound-title">電子音 (ピピピ)</span>
                                 <span class="sound-meta">Program Generated</span>
                             </div>
-                            <button type="button" class="preview-btn" data-src="oscillator" data-type="oscillator">▶
-                                試聴</button>
+                            <div class="buttons">
+                                <button type="button" class="preview-btn" data-src="oscillator" data-type="oscillator">▶
+                                    試聴</button>
+                            </div>
                         </label>
 
                     </div>
@@ -189,12 +150,12 @@
             </section>
 
             <!-- Duration Selection -->
-            <section class="settings-section">
+            <section class="card supply">
                 <details open>
                     <summary>
                         <h2>再生時間</h2>
                     </summary>
-                    <div class="option-group">
+                    <div class="option-group" style="padding-top: 1rem;">
                         <label class="radio-label">
                             <input type="radio" name="durationMode" value="full">
                             <div class="sound-info">
@@ -209,24 +170,35 @@
                             </div>
                         </label>
 
-                        <div class="duration-inputs">
-                            <input type="number" id="durationSeconds" min="1" max="300" value="10"
-                                style="padding: 0.5rem; width: 80px;">
-                            <span>秒</span>
-                            <button type="button" id="testDurationBtn"
-                                style="margin-left: 1rem; padding: 0.3rem 0.6rem; cursor: pointer;">🔍 時間指定テスト</button>
+                        <div class="duration-inputs input-bar"
+                            style="justify-content: flex-start; margin: 1rem 0 0 2rem;">
+                            <input type="number" id="durationSeconds" min="1" max="300" value="10">
+                            <span style="align-self: center;">秒</span>
+                            <div class="buttons" style="margin-left: 1rem;">
+                                <button type="button" id="testDurationBtn">🔍 時間指定テスト</button>
+                            </div>
                         </div>
                     </div>
                 </details>
             </section>
 
-            <div class="footer-actions">
-                <a href="index.html" class="btn btn-cancel"
-                    style="text-decoration: none; display: inline-block; text-align: center; padding: 0.8rem 2rem;">キャンセル</a>
-                <button type="submit" class="btn btn-save">保存して戻る</button>
+            <div class="footer-actions input-bar" style="margin-top: 2rem;">
+                <a href="index.html" class="btn"
+                    style="text-decoration: none; display: flex; align-items: center; justify-content: center; background: #444; color: #ddd; border-radius: 30px; padding: 11px 22px; font-weight: 600; min-width: 88px; border: 1px solid #555;">キャンセル</a>
+                <button type="submit" class="btn"
+                    style="background: var(--accent); color: #000; border-color: var(--accent);">保存して戻る</button>
             </div>
 
         </form>
+
+        <div class="credits"
+            style="text-align: center; margin-top: 2rem; padding: 1rem; font-size: 0.8rem; color: #666;">
+            <p style="margin-bottom: 0.5rem;">Alarm Music provided by:</p>
+            <a href="http://www.vagrancy.jp/" target="_blank" rel="noopener noreferrer">
+                <img src="midi/v_banner04.jpg" alt="VAGRANCY" style="max-width: 200px; border: 1px solid #ccc;">
+            </a>
+            <p>copyright (c) akiko shikata</p>
+        </div>
     </main>
 
     <script>
