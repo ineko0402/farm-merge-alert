@@ -26,19 +26,19 @@ let audioCtx = null;
 function playElectronicSound() {
   stopMidiOrAudio();
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  
+
   const machineGunBeep = (time) => {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-    
+
     osc.type = 'square';
     osc.frequency.setValueAtTime(880, time);
-    
+
     gain.gain.setValueAtTime(0.1, time);
     gain.gain.exponentialRampToValueAtTime(0.00001, time + 0.1);
-    
+
     osc.start(time);
     osc.stop(time + 0.1);
   };
@@ -47,7 +47,7 @@ function playElectronicSound() {
   // Loop logic would be needed for continuous, but for now simple 3beeps
   // Or actually, simple repeating timer for electronic sound?
   // Let's make it a simple loop for the duration
-  
+
   // Implementation: Repeat beep every 1 sec
   const beepLoop = () => {
     if (!audioCtx) return;
@@ -56,7 +56,7 @@ function playElectronicSound() {
     machineGunBeep(t + 0.2);
     machineGunBeep(t + 0.4);
   };
-  
+
   beepLoop();
   // We rely on the global timer to stop this, but for "Loop" mode need an interval?
   // Let's attach the interval to the audioCtx object or global var
@@ -71,10 +71,10 @@ function stopMidiOrAudio() {
     clearTimeout(midiStopTimer);
     midiStopTimer = null;
   }
-  
+
   // Stop MIDI
-  try { MIDIjs.stop(); } catch (e) {}
-  
+  try { MIDIjs.stop(); } catch (e) { }
+
   // Stop Oscillator
   if (audioCtx) {
     if (audioCtx._beepInterval) clearInterval(audioCtx._beepInterval);
@@ -168,6 +168,11 @@ function stopBlink() {
   }
 
   // 手動停止時
+  // stopMidiOrAudio(); // Removed: stopBlink should only stop visuals
+}
+
+function stopAllAlarms() {
+  stopBlink();
   stopMidiOrAudio();
 }
 
@@ -187,7 +192,7 @@ let isHalfEvent = state.halfEvent; // イベントの状態を一時的に保持
 
 /* ===== エネルギーアラーム機能 ===== */
 $('#startEnergy').addEventListener('click', () => {
-  stopBlink();
+  stopAllAlarms();
   const curEnergy = parseInt($('#curEnergy').value);
 
   // 入力値の検証
@@ -217,7 +222,7 @@ $('#startEnergy').addEventListener('click', () => {
 });
 
 $('#stopEnergy').addEventListener('click', () => {
-  stopBlink();
+  stopAllAlarms();
   $('#energyActiveUI').classList.add('hidden');
   $('#energyInputUI').classList.remove('hidden');
 
@@ -237,7 +242,7 @@ $('#resetEnergy').addEventListener('click', () => {
 
 /* ===== 物資アラーム機能 ===== */
 $('#startSupply').addEventListener('click', () => {
-  stopBlink();
+  stopAllAlarms();
   const currentSupply = parseInt($('#curSupply').value);
 
   // 入力値の検証
@@ -279,7 +284,7 @@ $('#startSupply').addEventListener('click', () => {
 });
 
 $('#stopSupply').addEventListener('click', () => {
-  stopBlink();
+  stopAllAlarms();
   $('#supplyActiveUI').classList.add('hidden');
   $('#supplyInputUI').classList.remove('hidden');
 
@@ -359,7 +364,7 @@ $workerPresetButtons.addEventListener('click', e => {
   state.workers.push(worker);
   save();
   addWorkerItem(worker);
-  stopBlink();
+  stopAllAlarms();
 });
 
 $workerList.addEventListener('click', e => {
@@ -378,14 +383,14 @@ $workerList.addEventListener('click', e => {
       worker.fired = false;
       worker._elItem.classList.remove('done-worker');
       worker._elItem.querySelector('.pill').textContent = fmtDT(worker.targetAt);
-      stopBlink();
+      stopAllAlarms();
       break;
     case 'minus':
       worker.targetAt = Math.max(Date.now(), worker.targetAt - 60000); // 1分減算、ただし現在時刻より前にはしない
       worker.fired = false;
       worker._elItem.classList.remove('done-worker');
       worker._elItem.querySelector('.pill').textContent = fmtDT(worker.targetAt);
-      stopBlink();
+      stopAllAlarms();
       break;
     case 'delete':
       removeWorkerWithAnimation(worker._elItem, id);
@@ -518,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 通知モードのイベントリスナー設定
   $enableNotif.addEventListener('click', () => {
-    stopBlink();
+    stopAllAlarms();
     if (notificationMode === 'blink') {
       // 点滅 -> デスクトップ通知に切り替え
       if (Notification.permission === 'default') {
