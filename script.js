@@ -13,75 +13,9 @@ function fmtDT(ts) {
 }
 
 /* ===== 通知モードの切り替えロジックと関数 ===== */
-let blinkTimer;
+let blinkTimer = null;
 let originalTitle = document.title;
 let notificationMode = localStorage.getItem('notificationMode') || 'blink';
-
-// MIDIjs Player Setup
-// Note: MIDIjs is a global object loaded from the script tag.
-let midiStopTimer = null;
-const BASE64_CHIME = 'data:audio/midi;base64,TVRoZAAAAAYAAAABAeBNVHJrAAAA5wD/WAQEAhgIAP9RAwehIADAAADAAGWQXH8AwABlgFx/AMAAZZBZfwDAAGWAWX8AwABlkFZ/AMAAZYBWfwDAAGWQQ38AkEF/AJBCfwCQQH8AkD9/AMlPAJlPfwDAAACQU38AwABlgEN/AMAAZYBCfwDAAGWAP38AwABlgFN/AMAAZZBDfwDJTwCZT38AwAAAkFB/AMAAZYBBfwDAAGWJT38AwABliQB/AMAAZcAAZYBAfwDAAGWAUH8AwABlkE1/AMAAZYBDfwDAAGXAAGWATX8AwABlwABlwABlwABlwABlkDh/AP8vAA==';
-let audioCtx = null;
-
-function playElectronicSound() {
-  stopMidiOrAudio();
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-  const machineGunBeep = (time) => {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(880, time);
-
-    gain.gain.setValueAtTime(0.1, time);
-    gain.gain.exponentialRampToValueAtTime(0.00001, time + 0.1);
-
-    osc.start(time);
-    osc.stop(time + 0.1);
-  };
-
-  const now = audioCtx.currentTime;
-  // Loop logic would be needed for continuous, but for now simple 3beeps
-  // Or actually, simple repeating timer for electronic sound?
-  // Let's make it a simple loop for the duration
-
-  // Implementation: Repeat beep every 1 sec
-  const beepLoop = () => {
-    if (!audioCtx) return;
-    const t = audioCtx.currentTime;
-    machineGunBeep(t);
-    machineGunBeep(t + 0.2);
-    machineGunBeep(t + 0.4);
-  };
-
-  beepLoop();
-  // We rely on the global timer to stop this, but for "Loop" mode need an interval?
-  // Let's attach the interval to the audioCtx object or global var
-  // For simplicity, let's just make it repeat every 2 seconds until stopped
-  audioCtx._beepInterval = setInterval(() => {
-    if (audioCtx) beepLoop();
-  }, 2000);
-}
-
-function stopMidiOrAudio() {
-  if (midiStopTimer) {
-    clearTimeout(midiStopTimer);
-    midiStopTimer = null;
-  }
-
-  // Stop MIDI
-  try { MIDIjs.stop(); } catch (e) { }
-
-  // Stop Oscillator
-  if (audioCtx) {
-    if (audioCtx._beepInterval) clearInterval(audioCtx._beepInterval);
-    audioCtx.close();
-    audioCtx = null;
-  }
-}
 
 const $enableNotif = $('#enableNotif');
 
@@ -108,34 +42,17 @@ function updateNotifButtonUI() {
 function notifyAll(title, body) {
   // 1. サウンドを鳴らす (両モード共通)
   try {
-    stopMidiOrAudio();
-
-    // Load Settings
-    const soundPath = localStorage.getItem('alarmExample_path') || 'midi/aka09.mid';
-    const durationMode = localStorage.getItem('alarmExample_mode') || 'time';
-    const durationSeconds = parseInt(localStorage.getItem('alarmExample_seconds') || '10', 10);
-
-    // Play Logic
-    if (soundPath === 'base64_chime') {
-      MIDIjs.play(BASE64_CHIME);
-    } else if (soundPath === 'oscillator') {
-      playElectronicSound();
-    } else {
-      MIDIjs.play(soundPath);
-    }
+    const settings = getAlarmSettings();
+    playAlarmSound(settings);
 
     // Auto Stop Timer (if mode is 'time')
-    if (durationMode === 'time') {
-      const ms = durationSeconds * 1000;
-      midiStopTimer = setTimeout(() => {
+    if (settings.mode === 'time') {
+      const ms = settings.seconds * 1000;
+      sharedMidiStopTimer = setTimeout(() => {
         stopMidiOrAudio();
-        console.log(`Alarm stopped automatically after ${durationSeconds}s`);
+        console.log(`Alarm stopped automatically after ${settings.seconds}s`);
       }, ms);
     }
-    // If mode is 'full', we don't set a timer. 
-    // Manual stop or naturally ending (for MIDI) works. 
-    // Oscillator loops forever until manual stop in 'full' mode.
-
   } catch (e) {
     console.error('Failed to play Audio/MIDI:', e);
   }

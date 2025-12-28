@@ -53,6 +53,49 @@
             font-size: 0.8rem;
             color: #888;
         }
+
+        /* Volume Slider Customization */
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 0.5rem 0;
+        }
+
+        input[type=range] {
+            flex: 1;
+            cursor: pointer;
+            accent-color: var(--worker);
+        }
+
+        .volume-value {
+            min-width: 40px;
+            font-weight: bold;
+            color: var(--worker);
+        }
+
+        /* Toast Styles */
+        #toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: #fff;
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.4s var(--ease-out-quart);
+            pointer-events: none;
+            border: 1px solid var(--border);
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
     </style>
 </head>
 
@@ -63,6 +106,17 @@
 
     <main>
         <form id="settingsForm">
+
+            <!-- Volume Settings (Improvement 3) -->
+            <section class="card workers">
+                <h2>音量設定</h2>
+                <div class="volume-container">
+                    <span style="font-size: 1.2rem;">🔈</span>
+                    <input type="range" id="volumeRange" min="0" max="100" value="50">
+                    <span id="volumeValue" class="volume-value">50%</span>
+                    <span style="font-size: 1.2rem;">🔊</span>
+                </div>
+            </section>
 
             <!-- Alarm Sound Selection -->
             <section class="card energy">
@@ -170,7 +224,7 @@
                             </div>
                         </label>
 
-                        <div class="duration-inputs input-bar"
+                        <div id="durationSecondsContainer" class="duration-inputs input-bar"
                             style="justify-content: flex-start; margin: 1rem 0 0 2rem;">
                             <input type="number" id="durationSeconds" min="1" max="300" value="10">
                             <span style="align-self: center;">秒</span>
@@ -201,33 +255,54 @@
         </div>
     </main>
 
+    <div id="toast">時間指定テスト終了</div>
+
+    <script src="shared-audio.js"></script>
     <script>
         // --- Utils & Constants ---
-        const BASE64_CHIME = 'data:audio/midi;base64,TVRoZAAAAAYAAAABAeBNVHJrAAAA5wD/WAQEAhgIAP9RAwehIADAAADAAGWQXH8AwABlgFx/AMAAZZBZfwDAAGWAWX8AwABlkFZ/AMAAZYBWfwDAAGWQQ38AkEF/AJBCfwCQQH8AkD9/AMlPAJlPfwDAAACQU38AwABlgEN/AMAAZYBCfwDAAGWAP38AwABlgFN/AMAAZZBDfwDJTwCZT38AwAAAkFB/AMAAZYBBfwDAAGWJT38AwABliQB/AMAAZcAAZYBAfwDAAGWAUH8AwABlkE1/AMAAZYBDfwDAAGXAAGWATX8AwABlwABlwABlwABlwABlkDh/AP8vAA==';
         let previewTimer = null;
-        let audioCtx = null; // For Oscillator
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
 
         // --- Load Settings ---
         function loadSettings() {
-            const savedPath = localStorage.getItem('alarmExample_path') || 'midi/aka09.mid';
-            const savedMode = localStorage.getItem('alarmExample_mode') || 'time';
-            const savedSeconds = localStorage.getItem('alarmExample_seconds') || '10';
+            const settings = getAlarmSettings();
 
-            console.log('🔹 Loaded Settings:', {
-                path: savedPath,
-                mode: savedMode,
-                seconds: savedSeconds
-            });
+            console.log('🔹 Loaded Settings:', settings);
 
             // Select Radio
-            const soundRadio = document.querySelector(`input[name="sound"][value="${savedPath}"]`);
+            const soundRadio = document.querySelector(`input[name="sound"][value="${settings.path}"]`);
             if (soundRadio) soundRadio.checked = true;
 
-            const modeRadio = document.querySelector(`input[name="durationMode"][value="${savedMode}"]`);
+            const modeRadio = document.querySelector(`input[name="durationMode"][value="${settings.mode}"]`);
             if (modeRadio) modeRadio.checked = true;
 
             // Set Input
-            document.getElementById('durationSeconds').value = savedSeconds;
+            document.getElementById('durationSeconds').value = settings.seconds;
+
+            // Set Volume
+            const volumeRange = document.getElementById('volumeRange');
+            volumeRange.value = settings.volume;
+            document.getElementById('volumeValue').textContent = settings.volume + '%';
+
+            // Toggle visibility
+            toggleDurationInput(settings.mode);
+        }
+
+        function toggleDurationInput(mode) {
+            const container = document.getElementById('durationSecondsContainer');
+            if (mode === 'time') {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
         }
 
         // --- Preview Logic ---
@@ -236,51 +311,20 @@
                 clearTimeout(previewTimer);
                 previewTimer = null;
             }
-            try { MIDIjs.stop(); } catch (e) { }
-            if (audioCtx) {
-                audioCtx.close();
-                audioCtx = null;
-            }
-        }
+            stopMidiOrAudio();
 
-        function playOscillator() {
-            // Simple Beep-Beep-Beep
-            stopPreview();
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-            const machineGunBeep = (time) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(880, time);
-
-                gain.gain.setValueAtTime(0.1, time);
-                gain.gain.exponentialRampToValueAtTime(0.00001, time + 0.1);
-
-                osc.start(time);
-                osc.stop(time + 0.1);
-            };
-
-            const now = audioCtx.currentTime;
-            machineGunBeep(now);
-            machineGunBeep(now + 0.2);
-            machineGunBeep(now + 0.4);
-
-            // Stop logic for loop preview (just plays once set)
+            // UI Reset: Revert all preview buttons to default
+            document.querySelectorAll('.preview-btn').forEach(btn => {
+                btn.textContent = '▶ 試聴';
+                btn.classList.remove('active');
+                btn.style.backgroundColor = ''; // Reset hover/active state if needed
+            });
         }
 
         // --- Helper to Play Selected Sound ---
         function playInfoMusic(src, type) {
-            if (type === 'midi') {
-                MIDIjs.play(src);
-            } else if (type === 'base64') {
-                MIDIjs.play(BASE64_CHIME);
-            } else if (type === 'oscillator') {
-                playOscillator();
-            }
+            const vol = parseInt(document.getElementById('volumeRange').value, 10);
+            playAlarmSound({ path: src, volume: vol });
         }
 
         // --- Event Listeners ---
@@ -289,13 +333,34 @@
                 e.preventDefault();
                 e.stopPropagation(); // Avoid triggering label click
 
+                const isPlaying = btn.textContent.includes('停止');
+
+                if (isPlaying) {
+                    stopPreview();
+                    return;
+                }
+
                 const src = btn.dataset.src;
                 const type = btn.dataset.type;
                 stopPreview();
 
                 console.log(`🎵 Previewing: ${src} (${type})`);
+                btn.textContent = '■ 停止';
+                btn.classList.add('active');
                 playInfoMusic(src, type);
             });
+        });
+
+        // Toggle Duration Input on Change
+        document.querySelectorAll('input[name="durationMode"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                toggleDurationInput(e.target.value);
+            });
+        });
+
+        // Volume Slider Real-time display
+        document.getElementById('volumeRange').addEventListener('input', (e) => {
+            document.getElementById('volumeValue').textContent = e.target.value + '%';
         });
 
         // Test Duration Button
@@ -325,7 +390,7 @@
             previewTimer = setTimeout(() => {
                 stopPreview();
                 console.log('⏱ Test Duration Ended');
-                alert('時間指定テスト終了'); // Visual feedback
+                showToast('時間指定テスト終了'); // Smooth feedback
             }, sec * 1000);
         });
 
@@ -337,9 +402,11 @@
             const durationMode = formData.get('durationMode');
             const seconds = formData.get('durationMode') === 'time' ?
                 document.getElementById('durationSeconds').value : null;
+            const volume = document.getElementById('volumeRange').value;
 
             localStorage.setItem('alarmExample_path', sound);
             localStorage.setItem('alarmExample_mode', durationMode);
+            localStorage.setItem('alarmExample_volume', volume);
             if (seconds) {
                 localStorage.setItem('alarmExample_seconds', seconds);
             }
@@ -347,7 +414,8 @@
             console.log('💾 Settings Saved:', {
                 sound,
                 durationMode,
-                seconds
+                seconds,
+                volume
             });
 
             // Stop any preview sound
