@@ -22,18 +22,19 @@ const $enableNotif = $('#enableNotif');
 // UIを現在のモードに合わせて更新する関数
 function updateNotifButtonUI() {
   if (!$enableNotif) return;
+  const $btnText = $enableNotif.querySelector('.btn-text');
 
   if (notificationMode === 'desktop') {
-    $enableNotif.textContent = '通知モード: デスクトップ';
+    if ($btnText) $btnText.textContent = '通知モード: デスクトップ';
     $enableNotif.style.backgroundColor = '#4fc3f7';
     $enableNotif.style.color = '#000';
     if (Notification.permission !== 'granted') {
-      $enableNotif.textContent = '通知モード: 権限が必要です';
+      if ($btnText) $btnText.textContent = '通知モード: 権限が必要です';
       $enableNotif.style.backgroundColor = '#d32f2f'; // 赤色
       $enableNotif.style.color = '#fff';
     }
   } else {
-    $enableNotif.textContent = '通知モード: タイトル点滅';
+    if ($btnText) $btnText.textContent = '通知モード: タイトル点滅';
     $enableNotif.style.backgroundColor = '#333';
     $enableNotif.style.color = '#ddd';
   }
