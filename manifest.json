@@ -8,12 +8,12 @@
   "description": "FMV用エネルギー・物資・労働者アラーム管理ツール",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "icon/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon-512.png",
+      "src": "icon/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

@@ -1,5 +1,5 @@
 // sw.js
-const CACHE_NAME = 'alarm-app-cache-v20251205';
+const CACHE_NAME = 'alarm-app-cache-v20251231';
 const urlsToCache = [
   './',
   './index.html',

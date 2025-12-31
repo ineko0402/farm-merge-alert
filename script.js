@@ -11,6 +11,17 @@ function fmtDT(ts) {
   const d = new Date(ts);
   return `${d.getMonth() + 1}/${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
 }
+function fmtLabel(min) {
+  const totalSec = Math.round(min * 60);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  let res = '';
+  if (h > 0) res += h + '時間';
+  if (m > 0 || (h === 0 && s === 0)) res += m + '分';
+  if (s > 0) res += s + '秒';
+  return res;
+}
 
 /* ===== 通知モードの切り替えロジックと関数 ===== */
 let blinkTimer = null;
@@ -269,7 +280,8 @@ $workerPresetButtons.addEventListener('click', e => {
 
   const min = parseFloat(btn.dataset.min);
   const label = btn.querySelector('.label')?.textContent || `${min}分`;
-  const duration = min * 60 * 1000 * (isHalfEvent ? 0.5 : 1);
+  // イベント中なら半減、さらに常に30秒マイナス（30秒経過済みとする）
+  const duration = (min * 60 * 1000 * (isHalfEvent ? 0.5 : 1)) - 30000;
 
   const worker = {
     id: 'w_' + Date.now() + Math.random().toString(36).slice(2),
@@ -336,6 +348,14 @@ function updateEventUI() {
     $halfEventButton.classList.remove('active');
     $('header').classList.remove('event-active');
   }
+
+  // 労働者ボタンのラベル更新
+  document.querySelectorAll('#workerPresetButtons button[data-min]').forEach(btn => {
+    const min = parseFloat(btn.dataset.min);
+    const displayMin = isHalfEvent ? min * 0.5 : min;
+    const labelEl = btn.querySelector('.label');
+    if (labelEl) labelEl.textContent = fmtLabel(displayMin);
+  });
 }
 
 /* ===== メインループ (毎秒実行) ===== */
